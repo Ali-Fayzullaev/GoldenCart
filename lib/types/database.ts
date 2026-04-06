@@ -19,6 +19,7 @@ export type Store = {
   description: string;
   category: string;
   contact_email: string;
+  telegram_chat_id: string | null;
   is_active: boolean;
   created_at: string;
 };

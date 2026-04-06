@@ -97,6 +97,24 @@ export default function CheckoutPage({
         discount,
         promo_code: appliedPromo || undefined,
       });
+
+      // Telegram-уведомление продавцу (fire & forget)
+      if (store.telegram_chat_id) {
+        fetch("/api/telegram", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: store.telegram_chat_id,
+            store_name: store.name,
+            order_id: crypto.randomUUID(),
+            total: formatPrice(finalTotal),
+            items_count: items.length,
+            address: input.shipping_address,
+            phone: input.phone,
+          }),
+        }).catch(() => {});
+      }
+
       clearStoreCart(store.id);
       toast.success("Заказ оформлен!");
       router.push(`/store/${slug}/orders`);

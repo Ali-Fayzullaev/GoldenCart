@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,8 +71,8 @@ export default function StoreManagementPage() {
   const isPending = createStore.isPending || updateStore.isPending;
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6">
+    <div className="max-w-2xl space-y-6">
+      <h1 className="text-3xl font-bold">
         {store ? "Настройки магазина" : "Создать магазин"}
       </h1>
 
@@ -148,6 +149,159 @@ export default function StoreManagementPage() {
           {store ? "Сохранить" : "Создать магазин"}
         </Button>
       </form>
+
+      {/* Telegram уведомления */}
+      {store && <TelegramSettings storeId={store.id} currentChatId={store.telegram_chat_id} />}
+    </div>
+  );
+}
+
+function TelegramSettings({
+  storeId,
+  currentChatId,
+}: {
+  storeId: string;
+  currentChatId: string | null;
+}) {
+  const updateStore = useUpdateStore();
+  const [chatId, setChatId] = useState(currentChatId || "");
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+
+  const handleSave = async () => {
+    try {
+      await updateStore.mutateAsync({
+        id: storeId,
+        telegram_chat_id: chatId.trim() || null,
+      });
+      toast.success(chatId.trim() ? "Telegram подключён" : "Telegram отключён");
+    } catch {
+      toast.error("Ошибка сохранения");
+    }
+  };
+
+  const handleTest = async () => {
+    if (!chatId.trim()) {
+      toast.error("Введите Chat ID");
+      return;
+    }
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/telegram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId.trim(),
+          store_name: "Тестовый магазин",
+          order_id: "test-1234-5678",
+          total: "1 500",
+          items_count: 3,
+          address: "Тестовый адрес",
+          phone: "+7 (999) 123-45-67",
+        }),
+      });
+      if (res.ok) {
+        setTestResult("success");
+        toast.success("Тестовое сообщение отправлено! Проверьте Telegram.");
+      } else {
+        setTestResult("error");
+        toast.error("Ошибка отправки. Проверьте Chat ID и токен бота.");
+      }
+    } catch {
+      setTestResult("error");
+      toast.error("Ошибка подключения");
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-blue-50 rounded-lg">
+          <Send className="h-5 w-5 text-blue-500" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Telegram-уведомления</h2>
+          <p className="text-sm text-gray-500">
+            Получайте уведомления о новых заказах в Telegram
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+        <p className="font-medium">Как настроить:</p>
+        <ol className="list-decimal list-inside space-y-1 text-gray-600">
+          <li>
+            Откройте{" "}
+            <a
+              href="https://t.me/BotFather"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              @BotFather
+            </a>{" "}
+            в Telegram → отправьте <code className="bg-gray-200 px-1 rounded">/newbot</code>
+          </li>
+          <li>Скопируйте полученный токен бота</li>
+          <li>
+            Напишите любое сообщение вашему боту, затем откройте:{" "}
+            <code className="bg-gray-200 px-1 rounded text-xs break-all">
+              https://api.telegram.org/bot&lt;ТОКЕН&gt;/getUpdates
+            </code>
+          </li>
+          <li>
+            Найдите <code className="bg-gray-200 px-1 rounded">chat.id</code> — это ваш Chat ID
+          </li>
+        </ol>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="telegram_chat_id">Telegram Chat ID</Label>
+        <div className="flex gap-2">
+          <Input
+            id="telegram_chat_id"
+            placeholder="123456789"
+            value={chatId}
+            onChange={(e) => {
+              setChatId(e.target.value);
+              setTestResult(null);
+            }}
+            className="font-mono"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleTest}
+            disabled={testing || !chatId.trim()}
+            className="shrink-0"
+          >
+            {testing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : testResult === "success" ? (
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            ) : testResult === "error" ? (
+              <AlertCircle className="h-4 w-4 text-red-500" />
+            ) : (
+              "Тест"
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        onClick={handleSave}
+        className="w-full bg-blue-500 hover:bg-blue-600"
+        disabled={updateStore.isPending}
+      >
+        {updateStore.isPending && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        {chatId.trim() ? "Сохранить Chat ID" : "Отключить уведомления"}
+      </Button>
     </div>
   );
 }
