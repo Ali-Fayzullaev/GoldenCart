@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import { Search, ShoppingCart, Star } from "lucide-react";
+import { Search, ShoppingCart, Star, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,11 +30,27 @@ export default function StoreFrontPage({
   const { data: store } = useStoreBySlug(slug);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [sort, setSort] = useState("newest");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const { data: products, isLoading } = usePublicProducts(store?.id, {
     search,
     category,
+    sort,
+    priceMin: priceMin ? Number(priceMin) : undefined,
+    priceMax: priceMax ? Number(priceMax) : undefined,
   });
   const { data: ratings } = useStoreProductRatings(store?.id);
+
+  // Сортировка по популярности (кол-во отзывов) — клиентская
+  const sortedProducts =
+    sort === "popular" && products && ratings
+      ? [...products].sort(
+          (a, b) =>
+            (ratings[b.id]?.count || 0) - (ratings[a.id]?.count || 0)
+        )
+      : products;
 
   const settings = store?.store_settings;
   const primaryColor = settings?.primary_color || "#f59e0b";
@@ -47,29 +63,88 @@ export default function StoreFrontPage({
       )}
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Поиск товаров..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Поиск товаров..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={category} onValueChange={(val) => val && setCategory(val)}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Категория" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все категории</SelectItem>
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sort} onValueChange={(val) => val && setSort(val)}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Сортировка" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Сначала новые</SelectItem>
+              <SelectItem value="price_asc">Сначала дешёвые</SelectItem>
+              <SelectItem value="price_desc">Сначала дорогие</SelectItem>
+              <SelectItem value="popular">По популярности</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </Button>
         </div>
-        <Select value={category} onValueChange={(val) => val && setCategory(val)}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Категория" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все категории</SelectItem>
-            {PRODUCT_CATEGORIES.map((cat) => (
-              <SelectItem key={cat} value={cat}>
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+        {/* Расширенные фильтры */}
+        {showFilters && (
+          <div className="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+            <span className="text-sm text-gray-500">Цена:</span>
+            <Input
+              type="number"
+              placeholder="от"
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+              className="w-24 h-9 text-sm"
+              min={0}
+            />
+            <span className="text-gray-400">—</span>
+            <Input
+              type="number"
+              placeholder="до"
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+              className="w-24 h-9 text-sm"
+              min={0}
+            />
+            <span className="text-sm text-gray-400">₽</span>
+            {(priceMin || priceMax) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setPriceMin("");
+                  setPriceMax("");
+                }}
+                className="text-xs"
+              >
+                Сбросить
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Products grid */}
@@ -83,13 +158,13 @@ export default function StoreFrontPage({
             </div>
           ))}
         </div>
-      ) : !products?.length ? (
+      ) : !sortedProducts?.length ? (
         <div className="text-center py-20">
           <p className="text-gray-400">Товаров пока нет</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map((product) => (
+          {sortedProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}

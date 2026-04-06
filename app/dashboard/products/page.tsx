@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Loader2, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Package, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +42,7 @@ import { useUpload } from "@/lib/hooks/use-upload";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { PRODUCT_CATEGORIES, formatPrice } from "@/lib/helpers";
 import { toast } from "sonner";
-import type { Product } from "@/lib/types/database";
+import type { Product, ProductVariantOption } from "@/lib/types/database";
 
 export default function ProductsManagementPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
@@ -202,6 +202,27 @@ function ProductForm({
   const updateProduct = useUpdateProduct();
   const { upload, uploading } = useUpload();
   const [images, setImages] = useState<string[]>(product?.images || []);
+  const [variants, setVariants] = useState<ProductVariantOption[]>(
+    product?.variants || []
+  );
+  const [newVariantName, setNewVariantName] = useState("");
+  const [newVariantValue, setNewVariantValue] = useState("");
+
+  const addNewVariant = () => {
+    const name = newVariantName.trim();
+    const values = newVariantValue
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+    if (!name || !values.length) return;
+    if (variants.some((v) => v.name.toLowerCase() === name.toLowerCase())) {
+      toast.error("Такой вариант уже существует");
+      return;
+    }
+    setVariants((prev) => [...prev, { name, values }]);
+    setNewVariantName("");
+    setNewVariantValue("");
+  };
 
   const {
     register,
@@ -243,10 +264,10 @@ function ProductForm({
   const onSubmit = async (input: ProductInput) => {
     try {
       if (product) {
-        await updateProduct.mutateAsync({ id: product.id, ...input, images });
+        await updateProduct.mutateAsync({ id: product.id, ...input, images, variants });
         toast.success("Товар обновлён");
       } else {
-        await createProduct.mutateAsync({ ...input, store_id: storeId, images });
+        await createProduct.mutateAsync({ ...input, store_id: storeId, images, variants });
         toast.success("Товар добавлен");
       }
       onSuccess();
@@ -324,6 +345,114 @@ function ProductForm({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Варианты товара */}
+      <div className="space-y-3">
+        <Label>Варианты (размер, цвет, вес...)</Label>
+
+        {variants.map((variant, vi) => (
+          <div key={vi} className="border rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-sm">{variant.name}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  setVariants((prev) => prev.filter((_, i) => i !== vi))
+                }
+                className="text-gray-400 hover:text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {variant.values.map((val, valIdx) => (
+                <span
+                  key={valIdx}
+                  className="inline-flex items-center gap-1 bg-gray-100 text-sm px-2 py-0.5 rounded-full"
+                >
+                  {val}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVariants((prev) =>
+                        prev.map((v, i) =>
+                          i === vi
+                            ? {
+                                ...v,
+                                values: v.values.filter(
+                                  (_, j) => j !== valIdx
+                                ),
+                              }
+                            : v
+                        ).filter((v) => v.values.length > 0)
+                      )
+                    }
+                  >
+                    <X className="h-3 w-3 text-gray-400 hover:text-red-500" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            {/* Добавить значение к существующему варианту */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Новое значение..."
+                className="h-8 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const val = (e.target as HTMLInputElement).value.trim();
+                    if (val && !variant.values.includes(val)) {
+                      setVariants((prev) =>
+                        prev.map((v, i) =>
+                          i === vi
+                            ? { ...v, values: [...v.values, val] }
+                            : v
+                        )
+                      );
+                      (e.target as HTMLInputElement).value = "";
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        ))}
+
+        {/* Добавить новый вариант */}
+        <div className="flex gap-2">
+          <Input
+            placeholder="Название (напр. Размер)"
+            value={newVariantName}
+            onChange={(e) => setNewVariantName(e.target.value)}
+            className="h-9 text-sm flex-1"
+          />
+          <Input
+            placeholder="Значения через запятую"
+            value={newVariantValue}
+            onChange={(e) => setNewVariantValue(e.target.value)}
+            className="h-9 text-sm flex-1"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addNewVariant();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={addNewVariant}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-gray-400">
+          Введите название варианта и значения через запятую, затем нажмите +
+        </p>
       </div>
 
       <Button

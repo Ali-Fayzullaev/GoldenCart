@@ -43,6 +43,12 @@ export const storeSettingsSchema = z.object({
   welcome_text: z.string().max(500).optional(),
 });
 
+// --- Варианты товара ---
+export const variantOptionSchema = z.object({
+  name: z.string().min(1, "Введите название варианта").max(50),
+  values: z.array(z.string().min(1)).min(1, "Добавьте хотя бы одно значение"),
+});
+
 // --- Товары ---
 export const productSchema = z.object({
   name: z.string().min(2, "Минимум 2 символа").max(200),
@@ -51,6 +57,8 @@ export const productSchema = z.object({
   stock: z.coerce.number().int().min(0, "Не может быть отрицательным"),
   category: z.string().min(1, "Выберите категорию"),
 });
+
+export type VariantOptionInput = z.infer<typeof variantOptionSchema>;
 
 // --- Промокоды ---
 export const promoCodeSchema = z.object({

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import type { Product } from "@/lib/types/database";
+import type { Product, ProductVariantOption } from "@/lib/types/database";
 import type { ProductInput } from "@/lib/validations";
 
 const supabase = createClient();
@@ -26,7 +26,13 @@ export function useStoreProducts(storeId: string | undefined) {
 // Товары магазина (публичные, для витрины)
 export function usePublicProducts(
   storeId: string | undefined,
-  filters?: { search?: string; category?: string }
+  filters?: {
+    search?: string;
+    category?: string;
+    sort?: string;
+    priceMin?: number;
+    priceMax?: number;
+  }
 ) {
   return useQuery({
     queryKey: ["public-products", storeId, filters],
@@ -35,14 +41,35 @@ export function usePublicProducts(
         .from("products")
         .select("*")
         .eq("store_id", storeId!)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .eq("is_active", true);
 
       if (filters?.search) {
         query = query.ilike("name", `%${filters.search}%`);
       }
       if (filters?.category && filters.category !== "all") {
         query = query.eq("category", filters.category);
+      }
+      if (filters?.priceMin !== undefined && filters.priceMin > 0) {
+        query = query.gte("price", filters.priceMin);
+      }
+      if (filters?.priceMax !== undefined && filters.priceMax > 0) {
+        query = query.lte("price", filters.priceMax);
+      }
+
+      // Сортировка
+      switch (filters?.sort) {
+        case "price_asc":
+          query = query.order("price", { ascending: true });
+          break;
+        case "price_desc":
+          query = query.order("price", { ascending: false });
+          break;
+        case "newest":
+          query = query.order("created_at", { ascending: false });
+          break;
+        default:
+          query = query.order("created_at", { ascending: false });
+          break;
       }
 
       const { data, error } = await query;
@@ -77,7 +104,7 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: async (
-      input: ProductInput & { store_id: string; images: string[] }
+      input: ProductInput & { store_id: string; images: string[]; variants?: ProductVariantOption[] }
     ) => {
       const { data, error } = await supabase
         .from("products")
@@ -89,6 +116,7 @@ export function useCreateProduct() {
           stock: input.stock,
           images: input.images,
           category: input.category,
+          variants: input.variants || [],
         } as never)
         .select()
         .single();

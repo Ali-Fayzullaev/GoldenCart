@@ -26,6 +26,9 @@ export default function ProductDetailPage({
   const addItem = useCartStore((s) => s.addItem);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariants, setSelectedVariants] = useState<
+    Record<string, string>
+  >({});
 
   const { data: reviews } = useProductReviews(id);
   const createReview = useCreateReview();
@@ -89,11 +92,29 @@ export default function ProductDetailPage({
       toast.error("Войдите как покупатель");
       return;
     }
+    // Проверяем что все варианты выбраны
+    if (product.variants && product.variants.length > 0) {
+      const missing = product.variants.filter(
+        (v) => !selectedVariants[v.name]
+      );
+      if (missing.length > 0) {
+        toast.error(`Выберите: ${missing.map((v) => v.name).join(", ")}`);
+        return;
+      }
+    }
+    const variantSuffix =
+      Object.keys(selectedVariants).length > 0
+        ? ` (${Object.values(selectedVariants).join(", ")})`
+        : "";
     addItem(
       {
-        product_id: product.id,
+        product_id:
+          product.id +
+          (Object.keys(selectedVariants).length > 0
+            ? ":" + Object.values(selectedVariants).sort().join(",")
+            : ""),
         store_id: product.store_id,
-        name: product.name,
+        name: product.name + variantSuffix,
         price: product.price,
         image: product.images[0] || null,
       },
@@ -152,6 +173,53 @@ export default function ProductDetailPage({
           )}
 
           <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
+
+          {/* Варианты товара */}
+          {product.variants && product.variants.length > 0 && (
+            <div className="space-y-3">
+              {product.variants.map((variant) => (
+                <div key={variant.name} className="space-y-1.5">
+                  <p className="text-sm font-medium">
+                    {variant.name}
+                    {selectedVariants[variant.name] && (
+                      <span className="text-gray-400 font-normal">
+                        : {selectedVariants[variant.name]}
+                      </span>
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {variant.values.map((val) => {
+                      const isSelected =
+                        selectedVariants[variant.name] === val;
+                      return (
+                        <button
+                          key={val}
+                          onClick={() =>
+                            setSelectedVariants((prev) => ({
+                              ...prev,
+                              [variant.name]: val,
+                            }))
+                          }
+                          className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+                            isSelected
+                              ? "text-white border-transparent"
+                              : "hover:border-gray-400"
+                          }`}
+                          style={
+                            isSelected
+                              ? { backgroundColor: primaryColor }
+                              : {}
+                          }
+                        >
+                          {val}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Average rating */}
           {reviews && reviews.length > 0 && (

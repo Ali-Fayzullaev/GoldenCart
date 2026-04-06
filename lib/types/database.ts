@@ -46,6 +46,11 @@ export type StoreCustomer = {
   created_at: string;
 };
 
+export type ProductVariantOption = {
+  name: string;
+  values: string[];
+};
+
 export type Product = {
   id: string;
   store_id: string;
@@ -55,6 +60,7 @@ export type Product = {
   stock: number;
   images: string[];
   category: string;
+  variants: ProductVariantOption[];
   is_active: boolean;
   created_at: string;
 };
