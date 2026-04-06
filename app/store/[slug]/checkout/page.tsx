@@ -1,0 +1,161 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useStoreBySlug } from "@/lib/hooks/use-stores";
+import { useCreateOrder } from "@/lib/hooks/use-orders";
+import { useCartStore } from "@/lib/store/cart-store";
+import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
+import { formatPrice } from "@/lib/helpers";
+import { toast } from "sonner";
+
+export default function CheckoutPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = use(params);
+  const { data: store } = useStoreBySlug(slug);
+  const router = useRouter();
+  const createOrder = useCreateOrder();
+  const getStoreItems = useCartStore((s) => s.getStoreItems);
+  const getStoreTotal = useCartStore((s) => s.getStoreTotal);
+  const clearStoreCart = useCartStore((s) => s.clearStoreCart);
+
+  const [items, setItems] = useState<ReturnType<typeof getStoreItems>>([]);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    if (store) {
+      setItems(getStoreItems(store.id));
+      setTotal(getStoreTotal(store.id));
+    }
+  }, [store, getStoreItems, getStoreTotal]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } = useForm<CheckoutInput>({ resolver: zodResolver(checkoutSchema) as any });
+
+  const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
+
+  const onSubmit = async (input: CheckoutInput) => {
+    if (!store || !items.length) return;
+    try {
+      await createOrder.mutateAsync({
+        store_id: store.id,
+        shipping_address: input.shipping_address,
+        phone: input.phone,
+        notes: input.notes || "",
+        items: items.map((i) => ({
+          product_id: i.product_id,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+      });
+      clearStoreCart(store.id);
+      toast.success("Заказ оформлен!");
+      router.push(`/store/${slug}/orders`);
+    } catch {
+      toast.error("Ошибка оформления заказа");
+    }
+  };
+
+  if (!items.length) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-gray-500">Корзина пуста</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto py-6 space-y-6">
+      <h1 className="text-2xl font-bold">Оформление заказа</h1>
+
+      {/* Cart summary */}
+      <div className="bg-white rounded-xl border p-4 space-y-2">
+        <h2 className="font-semibold">Ваш заказ</h2>
+        {items.map((item) => (
+          <div key={item.product_id} className="flex justify-between text-sm">
+            <span>
+              {item.name} × {item.quantity}
+            </span>
+            <span className="font-medium">
+              {formatPrice(item.price * item.quantity)}
+            </span>
+          </div>
+        ))}
+        <div className="border-t pt-2 flex justify-between font-bold">
+          <span>Итого</span>
+          <span style={{ color: primaryColor }}>{formatPrice(total)}</span>
+        </div>
+      </div>
+
+      {/* Delivery form */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="bg-white rounded-xl border p-6 space-y-4"
+      >
+        <h2 className="font-semibold">Данные доставки</h2>
+
+        <div className="space-y-2">
+          <Label htmlFor="shipping_address">Адрес доставки</Label>
+          <Textarea
+            id="shipping_address"
+            placeholder="Город, улица, дом, квартира"
+            rows={3}
+            {...register("shipping_address")}
+          />
+          {errors.shipping_address && (
+            <p className="text-sm text-red-500">{errors.shipping_address.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Телефон</Label>
+          <Input
+            id="phone"
+            placeholder="+7 (999) 123-45-67"
+            {...register("phone")}
+          />
+          {errors.phone && (
+            <p className="text-sm text-red-500">{errors.phone.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="notes">Комментарий (необязательно)</Label>
+          <Textarea
+            id="notes"
+            placeholder="Особые пожелания..."
+            rows={2}
+            {...register("notes")}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full text-white hover:opacity-90"
+          style={{ backgroundColor: primaryColor }}
+          disabled={createOrder.isPending}
+        >
+          {createOrder.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          Оформить заказ — {formatPrice(total)}
+        </Button>
+      </form>
+    </div>
+  );
+}

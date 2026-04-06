@@ -1,0 +1,143 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import type { Product } from "@/lib/types/database";
+import type { ProductInput } from "@/lib/validations";
+
+const supabase = createClient();
+
+// Товары магазина (для дашборда продавца)
+export function useStoreProducts(storeId: string | undefined) {
+  return useQuery({
+    queryKey: ["store-products", storeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("store_id", storeId!)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as unknown as Product[];
+    },
+    enabled: !!storeId,
+  });
+}
+
+// Товары магазина (публичные, для витрины)
+export function usePublicProducts(
+  storeId: string | undefined,
+  filters?: { search?: string; category?: string }
+) {
+  return useQuery({
+    queryKey: ["public-products", storeId, filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("products")
+        .select("*")
+        .eq("store_id", storeId!)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      if (filters?.search) {
+        query = query.ilike("name", `%${filters.search}%`);
+      }
+      if (filters?.category && filters.category !== "all") {
+        query = query.eq("category", filters.category);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as unknown as Product[];
+    },
+    enabled: !!storeId,
+  });
+}
+
+// Один товар
+export function useProduct(productId: string) {
+  return useQuery({
+    queryKey: ["product", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", productId)
+        .single();
+
+      if (error) throw error;
+      return data as unknown as Product;
+    },
+    enabled: !!productId,
+  });
+}
+
+// Создание товара
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      input: ProductInput & { store_id: string; images: string[] }
+    ) => {
+      const { data, error } = await supabase
+        .from("products")
+        .insert({
+          store_id: input.store_id,
+          name: input.name,
+          description: input.description,
+          price: input.price,
+          stock: input.stock,
+          images: input.images,
+          category: input.category,
+        } as never)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as unknown as Product;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["store-products"] });
+      queryClient.invalidateQueries({ queryKey: ["public-products"] });
+    },
+  });
+}
+
+// Обновление товара
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("products")
+        .update(updates as never)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as unknown as Product;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["store-products"] });
+      queryClient.invalidateQueries({ queryKey: ["public-products"] });
+    },
+  });
+}
+
+// Удаление товара
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["store-products"] });
+      queryClient.invalidateQueries({ queryKey: ["public-products"] });
+    },
+  });
+}
