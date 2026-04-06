@@ -11,6 +11,7 @@ import {
   Palette,
   Share2,
   LogOut,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/dashboard/design", label: "Дизайн", icon: Palette },
   { href: "/dashboard/products", label: "Товары", icon: Package },
   { href: "/dashboard/orders", label: "Заказы", icon: ShoppingCart },
+  { href: "/dashboard/promo", label: "Промокоды", icon: Tag },
   { href: "/dashboard/customers", label: "Покупатели", icon: Users },
   { href: "/dashboard/share", label: "Поделиться", icon: Share2 },
 ];

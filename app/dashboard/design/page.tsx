@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Upload as UploadIcon } from "lucide-react";
+import { Loader2, Upload as UploadIcon, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,130 @@ import { useUpload } from "@/lib/hooks/use-upload";
 import { FONTS } from "@/lib/helpers";
 import { toast } from "sonner";
 
+// Готовые дизайн-пресеты
+const DESIGN_PRESETS = [
+  {
+    id: "minimal-light",
+    name: "Минимализм",
+    description: "Чистый и лёгкий",
+    primary_color: "#18181b",
+    secondary_color: "#fafafa",
+    accent_color: "#18181b",
+    background_color: "#ffffff",
+    text_color: "#09090b",
+    font: "Inter",
+    preview: { bg: "#ffffff", header: "#fafafa", accent: "#18181b" },
+  },
+  {
+    id: "ocean-breeze",
+    name: "Океан",
+    description: "Спокойный и свежий",
+    primary_color: "#0ea5e9",
+    secondary_color: "#0c4a6e",
+    accent_color: "#06b6d4",
+    background_color: "#f0f9ff",
+    text_color: "#0c4a6e",
+    font: "Inter",
+    preview: { bg: "#f0f9ff", header: "#0c4a6e", accent: "#0ea5e9" },
+  },
+  {
+    id: "sunset-warm",
+    name: "Закат",
+    description: "Тёплый и уютный",
+    primary_color: "#f97316",
+    secondary_color: "#431407",
+    accent_color: "#fb923c",
+    background_color: "#fff7ed",
+    text_color: "#431407",
+    font: "Nunito",
+    preview: { bg: "#fff7ed", header: "#431407", accent: "#f97316" },
+  },
+  {
+    id: "forest-green",
+    name: "Лес",
+    description: "Природный и экологичный",
+    primary_color: "#16a34a",
+    secondary_color: "#14532d",
+    accent_color: "#22c55e",
+    background_color: "#f0fdf4",
+    text_color: "#14532d",
+    font: "Inter",
+    preview: { bg: "#f0fdf4", header: "#14532d", accent: "#16a34a" },
+  },
+  {
+    id: "royal-purple",
+    name: "Роял",
+    description: "Премиальный и элегантный",
+    primary_color: "#9333ea",
+    secondary_color: "#3b0764",
+    accent_color: "#a855f7",
+    background_color: "#faf5ff",
+    text_color: "#3b0764",
+    font: "Playfair Display",
+    preview: { bg: "#faf5ff", header: "#3b0764", accent: "#9333ea" },
+  },
+  {
+    id: "dark-mode",
+    name: "Тёмная тема",
+    description: "Стильный и современный",
+    primary_color: "#f59e0b",
+    secondary_color: "#111827",
+    accent_color: "#fbbf24",
+    background_color: "#0f172a",
+    text_color: "#f1f5f9",
+    font: "Inter",
+    preview: { bg: "#0f172a", header: "#111827", accent: "#f59e0b" },
+  },
+  {
+    id: "rose-gold",
+    name: "Розовое золото",
+    description: "Нежный и женственный",
+    primary_color: "#e11d48",
+    secondary_color: "#4c0519",
+    accent_color: "#fb7185",
+    background_color: "#fff1f2",
+    text_color: "#4c0519",
+    font: "Nunito",
+    preview: { bg: "#fff1f2", header: "#4c0519", accent: "#e11d48" },
+  },
+  {
+    id: "neon-cyber",
+    name: "Неон",
+    description: "Яркий и футуристичный",
+    primary_color: "#06b6d4",
+    secondary_color: "#0a0a0a",
+    accent_color: "#22d3ee",
+    background_color: "#18181b",
+    text_color: "#e4e4e7",
+    font: "Roboto",
+    preview: { bg: "#18181b", header: "#0a0a0a", accent: "#06b6d4" },
+  },
+  {
+    id: "coffee-shop",
+    name: "Кофейня",
+    description: "Тёплый и крафтовый",
+    primary_color: "#92400e",
+    secondary_color: "#451a03",
+    accent_color: "#d97706",
+    background_color: "#fffbeb",
+    text_color: "#451a03",
+    font: "Playfair Display",
+    preview: { bg: "#fffbeb", header: "#451a03", accent: "#92400e" },
+  },
+  {
+    id: "arctic-blue",
+    name: "Арктика",
+    description: "Холодный и чистый",
+    primary_color: "#2563eb",
+    secondary_color: "#1e3a5f",
+    accent_color: "#3b82f6",
+    background_color: "#eff6ff",
+    text_color: "#1e3a5f",
+    font: "Roboto",
+    preview: { bg: "#eff6ff", header: "#1e3a5f", accent: "#2563eb" },
+  },
+];
+
 export default function DesignPage() {
   const { data: store, isLoading } = useMyStore();
   const updateSettings = useUpdateStoreSettings();
@@ -33,6 +157,7 @@ export default function DesignPage() {
   const [welcomeText, setWelcomeText] = useState("Добро пожаловать в наш магазин!");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
 
   useEffect(() => {
     if (settings) {
@@ -47,6 +172,17 @@ export default function DesignPage() {
       setBannerUrl(settings.banner_url);
     }
   }, [settings]);
+
+  const applyPreset = (preset: typeof DESIGN_PRESETS[number]) => {
+    setPrimaryColor(preset.primary_color);
+    setSecondaryColor(preset.secondary_color);
+    setAccentColor(preset.accent_color);
+    setBackgroundColor(preset.background_color);
+    setTextColor(preset.text_color);
+    setFont(preset.font);
+    setActivePreset(preset.id);
+    toast.success(`Тема «${preset.name}» применена`);
+  };
 
   const handleSave = async () => {
     if (!store) return;
@@ -106,6 +242,81 @@ export default function DesignPage() {
       {/* Settings */}
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Дизайн магазина</h1>
+
+        {/* Готовые дизайны */}
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-amber-500" />
+            <h2 className="text-lg font-semibold">Готовые дизайны</h2>
+          </div>
+          <p className="text-sm text-gray-500">Выберите тему и настройте под себя</p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+            {DESIGN_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => applyPreset(preset)}
+                className={`relative group text-left rounded-xl border-2 p-3 transition-all hover:shadow-md ${
+                  activePreset === preset.id
+                    ? "border-amber-500 shadow-md ring-2 ring-amber-200"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                {activePreset === preset.id && (
+                  <div className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-0.5">
+                    <Check className="h-3 w-3" />
+                  </div>
+                )}
+                {/* Мини-превью */}
+                <div
+                  className="rounded-lg overflow-hidden mb-2 h-16"
+                  style={{ backgroundColor: preset.preview.bg }}
+                >
+                  <div
+                    className="h-5 flex items-center px-2"
+                    style={{ backgroundColor: preset.preview.header }}
+                  >
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                    </div>
+                  </div>
+                  <div className="px-2 py-1 flex gap-1">
+                    <div
+                      className="w-5 h-5 rounded"
+                      style={{ backgroundColor: preset.preview.accent + "30" }}
+                    />
+                    <div className="flex-1 space-y-1 pt-0.5">
+                      <div
+                        className="h-1 w-3/4 rounded"
+                        style={{ backgroundColor: preset.preview.accent + "40" }}
+                      />
+                      <div
+                        className="h-1 w-1/2 rounded"
+                        style={{ backgroundColor: preset.preview.accent + "20" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm font-medium">{preset.name}</p>
+                <p className="text-xs text-gray-500">{preset.description}</p>
+                {/* Палитра */}
+                <div className="flex gap-1 mt-1.5">
+                  {[preset.primary_color, preset.secondary_color, preset.accent_color, preset.background_color].map(
+                    (c, i) => (
+                      <div
+                        key={i}
+                        className="w-4 h-4 rounded-full border border-gray-200"
+                        style={{ backgroundColor: c }}
+                      />
+                    )
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <h2 className="text-lg font-semibold">Цвета</h2>

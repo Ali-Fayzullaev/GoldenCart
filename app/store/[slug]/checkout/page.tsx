@@ -4,13 +4,14 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Tag, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useCreateOrder } from "@/lib/hooks/use-orders";
+import { useValidatePromoCode } from "@/lib/hooks/use-promo-codes";
 import { useCartStore } from "@/lib/store/cart-store";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { formatPrice } from "@/lib/helpers";
@@ -31,6 +32,10 @@ export default function CheckoutPage({
 
   const [items, setItems] = useState<ReturnType<typeof getStoreItems>>([]);
   const [total, setTotal] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const validatePromo = useValidatePromoCode();
 
   useEffect(() => {
     if (store) {
@@ -38,6 +43,34 @@ export default function CheckoutPage({
       setTotal(getStoreTotal(store.id));
     }
   }, [store, getStoreItems, getStoreTotal]);
+
+  const finalTotal = Math.max(0, total - discount);
+
+  const handleApplyPromo = async () => {
+    if (!store || !promoInput.trim()) return;
+    try {
+      const result = await validatePromo.mutateAsync({
+        storeId: store.id,
+        code: promoInput.trim(),
+        orderTotal: total,
+      });
+      setDiscount(result.discount);
+      setAppliedPromo(result.promo.code);
+      toast.success(
+        `Скидка ${result.promo.discount_type === "percent" ? result.promo.discount_value + "%" : formatPrice(result.promo.discount_value)} применена!`
+      );
+    } catch (err) {
+      setDiscount(0);
+      setAppliedPromo(null);
+      toast.error(err instanceof Error ? err.message : "Промокод недействителен");
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setDiscount(0);
+    setAppliedPromo(null);
+    setPromoInput("");
+  };
 
   const {
     register,
@@ -61,6 +94,8 @@ export default function CheckoutPage({
           quantity: i.quantity,
           price: i.price,
         })),
+        discount,
+        promo_code: appliedPromo || undefined,
       });
       clearStoreCart(store.id);
       toast.success("Заказ оформлен!");
@@ -95,9 +130,67 @@ export default function CheckoutPage({
             </span>
           </div>
         ))}
-        <div className="border-t pt-2 flex justify-between font-bold">
-          <span>Итого</span>
-          <span style={{ color: primaryColor }}>{formatPrice(total)}</span>
+
+        {/* Промокод */}
+        <div className="border-t pt-3 mt-2">
+          {appliedPromo ? (
+            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-700">
+                  Промокод <span className="font-mono">{appliedPromo}</span>
+                </span>
+                <span className="text-sm text-green-600">
+                  −{formatPrice(discount)}
+                </span>
+              </div>
+              <button onClick={handleRemovePromo} className="text-gray-400 hover:text-red-500">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Промокод"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value)}
+                  className="pl-9 font-mono uppercase"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyPromo())}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleApplyPromo}
+                disabled={validatePromo.isPending || !promoInput.trim()}
+              >
+                {validatePromo.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Применить"
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t pt-2 space-y-1">
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Подитог</span>
+            <span>{formatPrice(total)}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Скидка</span>
+              <span>−{formatPrice(discount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-lg pt-1">
+            <span>Итого</span>
+            <span style={{ color: primaryColor }}>{formatPrice(finalTotal)}</span>
+          </div>
         </div>
       </div>
 
@@ -153,7 +246,7 @@ export default function CheckoutPage({
           {createOrder.isPending && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          Оформить заказ — {formatPrice(total)}
+          Оформить заказ — {formatPrice(finalTotal)}
         </Button>
       </form>
     </div>

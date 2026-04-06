@@ -52,11 +52,22 @@ export const productSchema = z.object({
   category: z.string().min(1, "Выберите категорию"),
 });
 
+// --- Промокоды ---
+export const promoCodeSchema = z.object({
+  code: z.string().min(2, "Минимум 2 символа").max(30, "Максимум 30 символов"),
+  discount_type: z.enum(["percent", "fixed"]),
+  discount_value: z.coerce.number().min(0.01, "Значение должно быть больше 0"),
+  min_order_amount: z.coerce.number().min(0).optional(),
+  max_uses: z.coerce.number().int().min(0).optional(),
+  expires_at: z.string().optional(),
+});
+
 // --- Оформление заказа ---
 export const checkoutSchema = z.object({
   shipping_address: z.string().min(5, "Введите адрес доставки"),
   phone: z.string().min(7, "Введите номер телефона"),
   notes: z.string().max(500).optional(),
+  promo_code: z.string().optional(),
 });
 
 // Типы
@@ -67,4 +78,5 @@ export type CustomerRegisterInput = z.infer<typeof customerRegisterSchema>;
 export type StoreInput = z.infer<typeof storeSchema>;
 export type StoreSettingsInput = z.infer<typeof storeSettingsSchema>;
 export type ProductInput = z.infer<typeof productSchema>;
+export type PromoCodeInput = z.infer<typeof promoCodeSchema>;
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

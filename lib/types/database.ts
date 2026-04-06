@@ -79,6 +79,20 @@ export type OrderItem = {
   created_at: string;
 };
 
+export type PromoCode = {
+  id: string;
+  store_id: string;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: number;
+  min_order_amount: number;
+  max_uses: number;
+  used_count: number;
+  expires_at: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
 // Составные типы
 export type StoreWithSettings = Store & {
   store_settings: StoreSettings | null;
@@ -103,6 +117,7 @@ export type Database = {
       products: { Row: Product; Insert: Omit<Product, "id" | "created_at" | "is_active">; Update: Partial<Product> };
       orders: { Row: Order; Insert: Omit<Order, "id" | "created_at">; Update: Partial<Order> };
       order_items: { Row: OrderItem; Insert: Omit<OrderItem, "id" | "created_at">; Update: Partial<OrderItem> };
+      promo_codes: { Row: PromoCode; Insert: Omit<PromoCode, "id" | "created_at" | "used_count">; Update: Partial<PromoCode> };
     };
   };
 };

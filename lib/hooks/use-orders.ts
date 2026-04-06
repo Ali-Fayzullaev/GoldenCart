@@ -57,16 +57,19 @@ export function useCreateOrder() {
       phone: string;
       notes: string;
       items: { product_id: string; quantity: number; price: number }[];
+      discount?: number;
+      promo_code?: string;
     }) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Не авторизован");
 
-      const totalAmount = input.items.reduce(
+      const subtotal = input.items.reduce(
         (sum, i) => sum + i.price * i.quantity,
         0
       );
+      const totalAmount = Math.max(0, subtotal - (input.discount || 0));
 
       const { data: order, error: orderError } = await supabase
         .from("orders")
@@ -99,6 +102,14 @@ export function useCreateOrder() {
         .insert(orderItems as never);
 
       if (itemsError) throw itemsError;
+
+      // Увеличиваем счётчик использования промокода
+      if (input.promo_code) {
+        await supabase.rpc("increment_promo_usage" as never, {
+          promo_code_text: input.promo_code,
+          promo_store_id: input.store_id,
+        } as never);
+      }
 
       return order as unknown as Order;
     },
