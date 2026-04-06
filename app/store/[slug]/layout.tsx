@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useCartStore } from "@/lib/store/cart-store";
+import { usePublicStorePages } from "@/lib/hooks/use-store-pages";
 import { createClient } from "@/lib/supabase/client";
 import type { StoreWithSettings } from "@/lib/types/database";
 
@@ -68,6 +69,7 @@ function StoreShell({
   const getStoreItemCount = useCartStore((s) => s.getStoreItemCount);
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const { data: cmsPages } = usePublicStorePages(store.id);
 
   useEffect(() => {
     setCartCount(getStoreItemCount(store.id));
@@ -117,6 +119,15 @@ function StoreShell({
             >
               Каталог
             </Link>
+            {cmsPages?.map((p) => (
+              <Link
+                key={p.id}
+                href={`${baseUrl}/page/${p.slug}`}
+                className="text-sm text-gray-300 hover:text-white transition-colors"
+              >
+                {p.title}
+              </Link>
+            ))}
 
             {isLoggedIn && isCustomer ? (
               <>
@@ -165,6 +176,16 @@ function StoreShell({
             <Link href={baseUrl} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
               Каталог
             </Link>
+            {cmsPages?.map((p) => (
+              <Link
+                key={p.id}
+                href={`${baseUrl}/page/${p.slug}`}
+                className="block text-sm text-gray-300 py-2"
+                onClick={() => setMobileMenu(false)}
+              >
+                {p.title}
+              </Link>
+            ))}
             {isLoggedIn && isCustomer ? (
               <>
                 <Link href={`${baseUrl}/orders`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>

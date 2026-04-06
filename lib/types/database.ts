@@ -120,6 +120,42 @@ export type Wishlist = {
   created_at: string;
 };
 
+export type StorePage = {
+  id: string;
+  store_id: string;
+  title: string;
+  slug: string;
+  blocks: PageBlock[];
+  is_published: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+export type PageBlock = {
+  type: "heading" | "text" | "image" | "divider";
+  content: string;
+};
+
+export type StoreBanner = {
+  id: string;
+  store_id: string;
+  image_url: string;
+  link: string;
+  title: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type StoreCategory = {
+  id: string;
+  store_id: string;
+  name: string;
+  parent_id: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 export type WishlistWithProduct = Wishlist & {
   products: Pick<Product, "id" | "name" | "price" | "images" | "stock">;
 };
@@ -155,6 +191,9 @@ export type Database = {
       promo_codes: { Row: PromoCode; Insert: Omit<PromoCode, "id" | "created_at" | "used_count">; Update: Partial<PromoCode> };
       reviews: { Row: Review; Insert: Omit<Review, "id" | "created_at">; Update: Partial<Review> };
       wishlists: { Row: Wishlist; Insert: Omit<Wishlist, "id" | "created_at">; Update: Partial<Wishlist> };
+      store_pages: { Row: StorePage; Insert: Omit<StorePage, "id" | "created_at">; Update: Partial<StorePage> };
+      store_banners: { Row: StoreBanner; Insert: Omit<StoreBanner, "id" | "created_at">; Update: Partial<StoreBanner> };
+      store_categories: { Row: StoreCategory; Insert: Omit<StoreCategory, "id" | "created_at">; Update: Partial<StoreCategory> };
     };
   };
 };

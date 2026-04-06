@@ -41,6 +41,7 @@ import {
 import { useUpload } from "@/lib/hooks/use-upload";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { PRODUCT_CATEGORIES, formatPrice } from "@/lib/helpers";
+import { useStoreCategories } from "@/lib/hooks/use-store-categories";
 import { toast } from "sonner";
 import type { Product, ProductVariantOption } from "@/lib/types/database";
 
@@ -201,6 +202,7 @@ function ProductForm({
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const { upload, uploading } = useUpload();
+  const { data: storeCategories } = useStoreCategories(storeId);
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [variants, setVariants] = useState<ProductVariantOption[]>(
     product?.variants || []
@@ -387,7 +389,10 @@ function ProductForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {PRODUCT_CATEGORIES.map((cat) => (
+            {(storeCategories && storeCategories.length > 0
+              ? storeCategories.map((c) => c.name)
+              : PRODUCT_CATEGORIES
+            ).map((cat) => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
           </SelectContent>

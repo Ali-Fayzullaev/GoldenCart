@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useState } from "react";
-import { Search, ShoppingCart, Star, SlidersHorizontal, Heart, Clock, GitCompareArrows } from "lucide-react";
+import { use, useState, useEffect, useCallback } from "react";
+import { Search, ShoppingCart, Star, SlidersHorizontal, Heart, Clock, GitCompareArrows, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,8 @@ import { useCompareStore } from "@/lib/store/compare-store";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useStoreProductRatings } from "@/lib/hooks/use-reviews";
 import { useWishlistIds, useAddToWishlist, useRemoveFromWishlist } from "@/lib/hooks/use-wishlist";
+import { usePublicStoreBanners } from "@/lib/hooks/use-store-banners";
+import { useStoreCategories } from "@/lib/hooks/use-store-categories";
 import { formatPrice, PRODUCT_CATEGORIES } from "@/lib/helpers";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types/database";
@@ -48,8 +50,12 @@ export default function StoreFrontPage({
   const wishlistIds = useWishlistIds(store?.id);
   const getStoreHistory = useViewHistoryStore((s) => s.getStoreHistory);
   const viewedItems = store ? getStoreHistory(store.id) : [];
-  const compareItems = useCompareStore((s) => s.getStoreItems)(store?.id || "");
-  const isInCompare = useCompareStore((s) => s.isInCompare);
+  const compareItems = useCompareStore((s) => s.items).filter(
+    (i) => store && i.store_id === store.id
+  );
+  const compareIds = new Set(compareItems.map((i) => i.product_id));
+  const { data: banners } = usePublicStoreBanners(store?.id);
+  const { data: storeCategories } = useStoreCategories(store?.id);
 
   // Сортировка по популярности (кол-во отзывов) — клиентская
   const sortedProducts =
@@ -65,6 +71,11 @@ export default function StoreFrontPage({
 
   return (
     <div className="space-y-6">
+      {/* Banner Slider */}
+      {banners && banners.length > 0 && (
+        <BannerSlider banners={banners} />
+      )}
+
       {/* Welcome */}
       {settings?.welcome_text && (
         <p className="text-lg text-center py-4">{settings.welcome_text}</p>
@@ -88,7 +99,10 @@ export default function StoreFrontPage({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все категории</SelectItem>
-              {PRODUCT_CATEGORIES.map((cat) => (
+              {(storeCategories && storeCategories.length > 0
+                ? storeCategories.map((c) => c.name)
+                : PRODUCT_CATEGORIES
+              ).map((cat) => (
                 <SelectItem key={cat} value={cat}>
                   {cat}
                 </SelectItem>
@@ -181,7 +195,7 @@ export default function StoreFrontPage({
               primaryColor={primaryColor}
               rating={ratings?.[product.id]}
               isWishlisted={wishlistIds.has(product.id)}
-              isCompared={isInCompare(product.id)}
+              isCompared={compareIds.has(product.id)}
             />
           ))}
         </div>
@@ -307,7 +321,6 @@ function ProductCard({
         stock: product.stock,
         variants: product.variants || null,
       });
-      toast.success("Добавлено к сравнению");
     }
   };
 
@@ -384,6 +397,81 @@ function ProductCard({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function BannerSlider({
+  banners,
+}: {
+  banners: { id: string; image_url: string; link: string; title: string }[];
+}) {
+  const [current, setCurrent] = useState(0);
+
+  const next = useCallback(() => {
+    setCurrent((c) => (c + 1) % banners.length);
+  }, [banners.length]);
+
+  const prev = () => {
+    setCurrent((c) => (c - 1 + banners.length) % banners.length);
+  };
+
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const timer = setInterval(next, 5000);
+    return () => clearInterval(timer);
+  }, [banners.length, next]);
+
+  const banner = banners[current];
+  const Wrapper = banner.link
+    ? ({ children }: { children: React.ReactNode }) => (
+        <a href={banner.link} className="block">
+          {children}
+        </a>
+      )
+    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+  return (
+    <div className="relative rounded-xl overflow-hidden group">
+      <Wrapper>
+        <img
+          src={banner.image_url}
+          alt={banner.title}
+          className="w-full h-48 md:h-64 object-cover transition-all duration-500"
+        />
+        {banner.title && (
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+            <p className="text-white font-semibold text-lg">{banner.title}</p>
+          </div>
+        )}
+      </Wrapper>
+      {banners.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`h-2 rounded-full transition-all ${
+                  i === current ? "w-6 bg-white" : "w-2 bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

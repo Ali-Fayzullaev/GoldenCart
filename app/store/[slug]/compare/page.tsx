@@ -14,11 +14,11 @@ export default function ComparePage({
 }) {
   const { slug } = use(params);
   const { data: store } = useStoreBySlug(slug);
-  const getStoreItems = useCompareStore((s) => s.getStoreItems);
+  const items = useCompareStore((s) => s.items).filter(
+    (i) => store && i.store_id === store.id
+  );
   const removeFromCompare = useCompareStore((s) => s.removeFromCompare);
   const clearCompare = useCompareStore((s) => s.clearCompare);
-
-  const items = store ? getStoreItems(store.id) : [];
   const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
 
   if (items.length === 0) {

@@ -1,6 +1,7 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,7 @@ import { useMyStore } from "@/lib/hooks/use-stores";
 import { useSellerOrders, useUpdateOrderStatus } from "@/lib/hooks/use-orders";
 import { formatPrice, getStatusLabel, getStatusColor } from "@/lib/helpers";
 import { toast } from "sonner";
-import type { Order } from "@/lib/types/database";
+import type { Order, OrderWithItems } from "@/lib/types/database";
 
 const statuses: Order["status"][] = [
   "pending",
@@ -67,7 +68,15 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Заказы</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Заказы</h1>
+        {orders && orders.length > 0 && (
+          <Button variant="outline" onClick={() => exportOrdersCSV(orders)}>
+            <Download className="mr-2 h-4 w-4" />
+            Экспорт CSV
+          </Button>
+        )}
+      </div>
 
       {!orders?.length ? (
         <div className="text-center py-20 bg-white rounded-xl border">
@@ -140,4 +149,43 @@ export default function OrdersPage() {
       )}
     </div>
   );
+}
+
+function exportOrdersCSV(orders: OrderWithItems[]) {
+  const BOM = "\uFEFF";
+  const header = [
+    "ID заказа",
+    "Дата",
+    "Статус",
+    "Сумма",
+    "Адрес",
+    "Телефон",
+    "Комментарий",
+    "Товары",
+  ].join(";");
+
+  const rows = orders.map((o) => {
+    const items = o.order_items
+      ?.map((i) => `${i.products?.name || "?"} x${i.quantity}`)
+      .join(", ") || "";
+    return [
+      o.id.slice(0, 8),
+      new Date(o.created_at).toLocaleDateString("ru-RU"),
+      getStatusLabel(o.status),
+      o.total_amount,
+      `"${(o.shipping_address || "").replace(/"/g, '""')}"`,
+      o.phone || "",
+      `"${(o.notes || "").replace(/"/g, '""')}"`,
+      `"${items.replace(/"/g, '""')}"`,
+    ].join(";");
+  });
+
+  const csv = BOM + [header, ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `заказы_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

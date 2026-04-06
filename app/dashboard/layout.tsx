@@ -13,6 +13,9 @@ import {
   LogOut,
   Tag,
   Upload,
+  FileText,
+  ImageIcon,
+  FolderTree,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -26,8 +29,11 @@ const navItems = [
   { href: "/dashboard/store", label: "Мой магазин", icon: Store },
   { href: "/dashboard/design", label: "Дизайн", icon: Palette },
   { href: "/dashboard/products", label: "Товары", icon: Package },
+  { href: "/dashboard/categories", label: "Категории", icon: FolderTree },
   { href: "/dashboard/orders", label: "Заказы", icon: ShoppingCart },
   { href: "/dashboard/promo", label: "Промокоды", icon: Tag },
+  { href: "/dashboard/pages", label: "Страницы", icon: FileText },
+  { href: "/dashboard/banners", label: "Баннеры", icon: ImageIcon },
   { href: "/dashboard/import", label: "Импорт CSV", icon: Upload },
   { href: "/dashboard/customers", label: "Покупатели", icon: Users },
   { href: "/dashboard/share", label: "Поделиться", icon: Share2 },
