@@ -40,7 +40,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
     }
 
-    const text = await file.text();
+    let text = await file.text();
+    // Убираем BOM если есть
+    if (text.charCodeAt(0) === 0xfeff) {
+      text = text.slice(1);
+    }
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
 
     if (lines.length < 2) {
@@ -59,27 +63,27 @@ export async function POST(req: NextRequest) {
       : ",";
 
     const columns = parseCsvLine(header, separator).map((c) =>
-      c.trim().toLowerCase()
+      c.trim().toLowerCase().replace(/\s*\(.*\)$/, "")
     );
 
     // Маппинг колонок
     const nameIdx = columns.findIndex((c) =>
-      ["name", "название", "наименование", "товар"].includes(c)
+      ["name", "название", "наименование", "товар", "имя"].includes(c)
     );
     const descIdx = columns.findIndex((c) =>
-      ["description", "описание"].includes(c)
+      ["description", "описание", "desc"].includes(c)
     );
     const priceIdx = columns.findIndex((c) =>
       ["price", "цена", "стоимость"].includes(c)
     );
     const stockIdx = columns.findIndex((c) =>
-      ["stock", "остаток", "количество", "qty"].includes(c)
+      ["stock", "остаток", "количество", "qty", "кол-во"].includes(c)
     );
     const categoryIdx = columns.findIndex((c) =>
       ["category", "категория"].includes(c)
     );
     const imagesIdx = columns.findIndex((c) =>
-      ["images", "изображения", "фото", "image"].includes(c)
+      ["images", "изображения", "фото", "image", "картинки", "url"].includes(c)
     );
 
     if (nameIdx === -1 || priceIdx === -1) {
@@ -87,10 +91,16 @@ export async function POST(req: NextRequest) {
         {
           error:
             "Не найдены обязательные колонки. Нужны: name/название, price/цена",
+          found_columns: columns,
         },
         { status: 400 }
       );
     }
+
+    // Опциональная колонка скидки
+    const discountIdx = columns.findIndex((c) =>
+      ["discount", "скидка"].includes(c)
+    );
 
     const products: Array<{
       store_id: string;
@@ -100,7 +110,6 @@ export async function POST(req: NextRequest) {
       stock: number;
       category: string;
       images: string[];
-      variants: never[];
     }> = [];
 
     const errors: string[] = [];
@@ -109,7 +118,16 @@ export async function POST(req: NextRequest) {
       const values = parseCsvLine(lines[i], separator);
       const name = values[nameIdx]?.trim();
       const priceStr = values[priceIdx]?.trim().replace(/\s/g, "").replace(",", ".");
-      const price = parseFloat(priceStr || "0");
+      let price = parseFloat(priceStr || "0");
+
+      // Применяем скидку если есть
+      if (discountIdx >= 0) {
+        const discStr = values[discountIdx]?.trim().replace(/[%\s]/g, "").replace(",", ".");
+        const discPercent = parseFloat(discStr || "0");
+        if (!isNaN(discPercent) && discPercent > 0 && discPercent <= 100) {
+          price = Math.round(price * (1 - discPercent / 100));
+        }
+      }
 
       if (!name) {
         errors.push(`Строка ${i + 1}: пустое название`);
@@ -141,7 +159,6 @@ export async function POST(req: NextRequest) {
         stock: isNaN(stock) ? 0 : Math.max(0, stock),
         category,
         images,
-        variants: [],
       });
     }
 

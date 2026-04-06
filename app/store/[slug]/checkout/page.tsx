@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Tag, Check, X } from "lucide-react";
+import { Loader2, Tag, Check, X, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { useValidatePromoCode } from "@/lib/hooks/use-promo-codes";
 import { useCartStore } from "@/lib/store/cart-store";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { formatPrice } from "@/lib/helpers";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 export default function CheckoutPage({
@@ -35,6 +36,7 @@ export default function CheckoutPage({
   const [discount, setDiscount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoInput, setPromoInput] = useState("");
+  const [firstOrderDiscount, setFirstOrderDiscount] = useState(0);
   const validatePromo = useValidatePromoCode();
 
   useEffect(() => {
@@ -44,7 +46,31 @@ export default function CheckoutPage({
     }
   }, [store, getStoreItems, getStoreTotal]);
 
-  const finalTotal = Math.max(0, total - discount);
+  // Проверяем, есть ли у клиента предыдущие заказы в этом магазине
+  useEffect(() => {
+    if (!store || !store.first_order_discount_type) return;
+    const checkFirstOrder = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { count } = await supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", store.id)
+        .eq("customer_id", user.id);
+      if (count === 0) {
+        const storeTotal = getStoreTotal(store.id);
+        const disc =
+          store.first_order_discount_type === "percent"
+            ? Math.round(storeTotal * (store.first_order_discount_value / 100))
+            : store.first_order_discount_value;
+        setFirstOrderDiscount(disc);
+      }
+    };
+    checkFirstOrder();
+  }, [store, getStoreTotal]);
+
+  const finalTotal = Math.max(0, total - discount - firstOrderDiscount);
 
   const handleApplyPromo = async () => {
     if (!store || !promoInput.trim()) return;
@@ -94,7 +120,7 @@ export default function CheckoutPage({
           quantity: i.quantity,
           price: i.price,
         })),
-        discount,
+        discount: discount + firstOrderDiscount,
         promo_code: appliedPromo || undefined,
       });
 
@@ -151,6 +177,14 @@ export default function CheckoutPage({
 
         {/* Промокод */}
         <div className="border-t pt-3 mt-2">
+          {firstOrderDiscount > 0 && (
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+              <Gift className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-700">
+                Скидка на первую покупку: −{formatPrice(firstOrderDiscount)}
+              </span>
+            </div>
+          )}
           {appliedPromo ? (
             <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
               <div className="flex items-center gap-2">
@@ -201,8 +235,14 @@ export default function CheckoutPage({
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-sm text-green-600">
-              <span>Скидка</span>
+              <span>Промокод</span>
               <span>−{formatPrice(discount)}</span>
+            </div>
+          )}
+          {firstOrderDiscount > 0 && (
+            <div className="flex justify-between text-sm text-amber-600">
+              <span>Скидка первой покупки</span>
+              <span>−{formatPrice(firstOrderDiscount)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-lg pt-1">

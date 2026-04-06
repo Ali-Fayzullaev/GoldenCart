@@ -116,7 +116,6 @@ export function useCreateProduct() {
           stock: input.stock,
           images: input.images,
           category: input.category,
-          variants: input.variants || [],
         } as never)
         .select()
         .single();
@@ -137,9 +136,11 @@ export function useUpdateProduct() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { variants, ...rest } = updates;
       const { data, error } = await supabase
         .from("products")
-        .update(updates as never)
+        .update(rest as never)
         .eq("id", id)
         .select()
         .single();

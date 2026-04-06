@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Send, CheckCircle2, AlertCircle, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -152,6 +152,15 @@ export default function StoreManagementPage() {
 
       {/* Telegram уведомления */}
       {store && <TelegramSettings storeId={store.id} currentChatId={store.telegram_chat_id} />}
+
+      {/* Скидка на первую покупку */}
+      {store && (
+        <FirstOrderDiscountSettings
+          storeId={store.id}
+          currentType={store.first_order_discount_type}
+          currentValue={store.first_order_discount_value}
+        />
+      )}
     </div>
   );
 }
@@ -301,6 +310,100 @@ function TelegramSettings({
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
         {chatId.trim() ? "Сохранить Chat ID" : "Отключить уведомления"}
+      </Button>
+    </div>
+  );
+}
+
+function FirstOrderDiscountSettings({
+  storeId,
+  currentType,
+  currentValue,
+}: {
+  storeId: string;
+  currentType: "percent" | "fixed" | null;
+  currentValue: number;
+}) {
+  const updateStore = useUpdateStore();
+  const [enabled, setEnabled] = useState(!!currentType);
+  const [discountType, setDiscountType] = useState<"percent" | "fixed">(
+    currentType || "percent"
+  );
+  const [value, setValue] = useState(String(currentValue || ""));
+
+  const handleSave = async () => {
+    try {
+      await updateStore.mutateAsync({
+        id: storeId,
+        first_order_discount_type: enabled ? discountType : null,
+        first_order_discount_value: enabled ? Number(value) || 0 : 0,
+      });
+      toast.success(enabled ? "Скидка на первую покупку настроена" : "Скидка отключена");
+    } catch {
+      toast.error("Ошибка сохранения");
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-amber-50 rounded-lg">
+          <Gift className="h-5 w-5 text-amber-500" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Скидка на первую покупку</h2>
+          <p className="text-sm text-gray-500">
+            Автоматическая скидка для новых клиентов
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+          />
+          <span className="text-sm font-medium">Включить скидку</span>
+        </label>
+      </div>
+
+      {enabled && (
+        <div className="flex gap-3">
+          <Select
+            value={discountType}
+            onValueChange={(val) => val && setDiscountType(val as "percent" | "fixed")}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="percent">Процент (%)</SelectItem>
+              <SelectItem value="fixed">Фикс. сумма (₽)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            placeholder={discountType === "percent" ? "10" : "500"}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="w-32"
+            min={0}
+            max={discountType === "percent" ? 100 : undefined}
+          />
+        </div>
+      )}
+
+      <Button
+        type="button"
+        onClick={handleSave}
+        className="w-full bg-amber-500 hover:bg-amber-600"
+        disabled={updateStore.isPending}
+      >
+        {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Сохранить
       </Button>
     </div>
   );

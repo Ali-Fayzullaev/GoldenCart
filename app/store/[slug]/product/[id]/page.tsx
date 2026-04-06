@@ -1,12 +1,13 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useProduct } from "@/lib/hooks/use-products";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useViewHistoryStore } from "@/lib/store/view-history-store";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useProductReviews, useCreateReview, useDeleteReview } from "@/lib/hooks/use-reviews";
 import { formatPrice } from "@/lib/helpers";
@@ -37,6 +38,21 @@ export default function ProductDetailPage({
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [hoverRating, setHoverRating] = useState(0);
+
+  const addView = useViewHistoryStore((s) => s.addView);
+
+  // Записываем просмотр товара
+  useEffect(() => {
+    if (product) {
+      addView({
+        product_id: product.id,
+        store_id: product.store_id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] || null,
+      });
+    }
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
 

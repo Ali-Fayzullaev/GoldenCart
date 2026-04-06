@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import { Search, ShoppingCart, Star, SlidersHorizontal, Heart } from "lucide-react";
+import { Search, ShoppingCart, Star, SlidersHorizontal, Heart, Clock, GitCompareArrows } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import {
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { usePublicProducts } from "@/lib/hooks/use-products";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useViewHistoryStore } from "@/lib/store/view-history-store";
+import { useCompareStore } from "@/lib/store/compare-store";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useStoreProductRatings } from "@/lib/hooks/use-reviews";
 import { useWishlistIds, useAddToWishlist, useRemoveFromWishlist } from "@/lib/hooks/use-wishlist";
@@ -44,6 +46,10 @@ export default function StoreFrontPage({
   });
   const { data: ratings } = useStoreProductRatings(store?.id);
   const wishlistIds = useWishlistIds(store?.id);
+  const getStoreHistory = useViewHistoryStore((s) => s.getStoreHistory);
+  const viewedItems = store ? getStoreHistory(store.id) : [];
+  const compareItems = useCompareStore((s) => s.getStoreItems)(store?.id || "");
+  const isInCompare = useCompareStore((s) => s.isInCompare);
 
   // Сортировка по популярности (кол-во отзывов) — клиентская
   const sortedProducts =
@@ -175,8 +181,59 @@ export default function StoreFrontPage({
               primaryColor={primaryColor}
               rating={ratings?.[product.id]}
               isWishlisted={wishlistIds.has(product.id)}
+              isCompared={isInCompare(product.id)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Плавающая панель сравнения */}
+      {compareItems.length > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white border shadow-lg rounded-xl px-4 py-3 flex items-center gap-3">
+          <GitCompareArrows className="h-5 w-5 text-blue-500" />
+          <span className="text-sm font-medium">
+            Сравнение: {compareItems.length} из 3
+          </span>
+          <a
+            href={`/store/${slug}/compare`}
+            className="text-sm font-semibold text-white px-3 py-1.5 rounded-lg hover:opacity-90"
+            style={{ backgroundColor: primaryColor }}
+          >
+            Сравнить
+          </a>
+        </div>
+      )}
+
+      {/* Недавно просмотренные */}
+      {viewedItems.length > 0 && (
+        <div className="space-y-3 border-t pt-6">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-gray-400" />
+            <h2 className="text-lg font-semibold">Недавно просмотренные</h2>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {viewedItems.slice(0, 8).map((item) => (
+              <a
+                key={item.product_id}
+                href={`/store/${slug}/product/${item.product_id}`}
+                className="shrink-0 w-36 rounded-lg border bg-white hover:shadow-md transition-shadow overflow-hidden"
+              >
+                {item.image ? (
+                  <img src={item.image} alt={item.name} className="w-full h-28 object-cover" />
+                ) : (
+                  <div className="w-full h-28 bg-gray-100 flex items-center justify-center">
+                    <ShoppingCart className="h-6 w-6 text-gray-300" />
+                  </div>
+                )}
+                <div className="p-2">
+                  <p className="text-xs font-medium line-clamp-2">{item.name}</p>
+                  <p className="text-xs font-bold mt-1" style={{ color: primaryColor }}>
+                    {formatPrice(item.price)}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -190,6 +247,7 @@ function ProductCard({
   primaryColor,
   rating,
   isWishlisted,
+  isCompared,
 }: {
   product: Product;
   storeSlug: string;
@@ -197,11 +255,14 @@ function ProductCard({
   primaryColor: string;
   rating?: { avg: number; count: number };
   isWishlisted: boolean;
+  isCompared: boolean;
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const { data: profile } = useProfile();
   const addToWishlist = useAddToWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
+  const addToCompare = useCompareStore((s) => s.addToCompare);
+  const removeFromCompare = useCompareStore((s) => s.removeFromCompare);
 
   const handleAdd = () => {
     if (!profile || profile.role !== "customer") {
@@ -231,6 +292,25 @@ function ProductCard({
     }
   };
 
+  const handleToggleCompare = () => {
+    if (isCompared) {
+      removeFromCompare(product.id);
+    } else {
+      addToCompare({
+        product_id: product.id,
+        store_id: storeId,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] || null,
+        category: product.category,
+        description: product.description || "",
+        stock: product.stock,
+        variants: product.variants || null,
+      });
+      toast.success("Добавлено к сравнению");
+    }
+  };
+
   return (
     <div className="rounded-xl border overflow-hidden hover:shadow-md transition-shadow bg-white relative">
       {/* Сердечко избранное */}
@@ -242,6 +322,16 @@ function ProductCard({
           className="h-4 w-4"
           fill={isWishlisted ? "#ef4444" : "none"}
           stroke={isWishlisted ? "#ef4444" : "#9ca3af"}
+        />
+      </button>
+      {/* Кнопка сравнения */}
+      <button
+        onClick={handleToggleCompare}
+        className="absolute top-2 left-2 z-10 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors shadow-sm"
+      >
+        <GitCompareArrows
+          className="h-4 w-4"
+          stroke={isCompared ? "#3b82f6" : "#9ca3af"}
         />
       </button>
       <a href={`/store/${storeSlug}/product/${product.id}`}>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Loader2, Package, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Package, X, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -207,6 +207,7 @@ function ProductForm({
   );
   const [newVariantName, setNewVariantName] = useState("");
   const [newVariantValue, setNewVariantValue] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
   const addNewVariant = () => {
     const name = newVariantName.trim();
@@ -247,11 +248,17 @@ function ProductForm({
   const category = watch("category");
   const isPending = createProduct.isPending || updateProduct.isPending;
 
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 МБ
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     for (const file of Array.from(files)) {
       if (images.length >= 5) break;
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`"${file.name}" превышает 2 МБ`);
+        continue;
+      }
       try {
         const url = await upload("products", storeId, file);
         setImages((prev) => [...prev, url]);
@@ -259,6 +266,23 @@ function ProductForm({
         toast.error("Ошибка загрузки");
       }
     }
+  };
+
+  const handleAddImageUrl = () => {
+    const url = imageUrl.trim();
+    if (!url) return;
+    if (images.length >= 5) {
+      toast.error("Максимум 5 изображений");
+      return;
+    }
+    try {
+      new URL(url);
+    } catch {
+      toast.error("Некорректный URL");
+      return;
+    }
+    setImages((prev) => [...prev, url]);
+    setImageUrl("");
   };
 
   const onSubmit = async (input: ProductInput) => {
@@ -306,6 +330,29 @@ function ProductForm({
             </label>
           )}
         </div>
+        {uploading && (
+          <p className="text-xs text-amber-600 flex items-center gap-1">
+            <Loader2 className="h-3 w-3 animate-spin" /> Загрузка...
+          </p>
+        )}
+        <p className="text-xs text-gray-400">Макс. размер файла: 2 МБ</p>
+        {images.length < 5 && (
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="https://example.com/image.jpg"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="pl-8 text-sm"
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImageUrl())}
+              />
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={handleAddImageUrl}>
+              Добавить URL
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

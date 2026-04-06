@@ -20,6 +20,8 @@ export type Store = {
   category: string;
   contact_email: string;
   telegram_chat_id: string | null;
+  first_order_discount_type: "percent" | "fixed" | null;
+  first_order_discount_value: number;
   is_active: boolean;
   created_at: string;
 };
