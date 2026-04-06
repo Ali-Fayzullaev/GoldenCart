@@ -1,11 +1,97 @@
 "use client";
 
 import { use } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Package, CheckCircle2, Truck, MapPin, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useCustomerOrders } from "@/lib/hooks/use-orders";
 import { formatPrice, getStatusLabel, getStatusColor } from "@/lib/helpers";
+import type { Order } from "@/lib/types/database";
+
+const TIMELINE_STEPS: {
+  status: Order["status"];
+  label: string;
+  icon: typeof Package;
+}[] = [
+  { status: "pending", label: "Оформлен", icon: Package },
+  { status: "confirmed", label: "Подтверждён", icon: CheckCircle2 },
+  { status: "shipped", label: "Отправлен", icon: Truck },
+  { status: "delivered", label: "Доставлен", icon: MapPin },
+];
+
+function getStepIndex(status: Order["status"]): number {
+  if (status === "cancelled") return -1;
+  return TIMELINE_STEPS.findIndex((s) => s.status === status);
+}
+
+function OrderTimeline({
+  status,
+  primaryColor,
+}: {
+  status: Order["status"];
+  primaryColor: string;
+}) {
+  const currentIdx = getStepIndex(status);
+  const isCancelled = status === "cancelled";
+
+  if (isCancelled) {
+    return (
+      <div className="flex items-center gap-2 py-3 px-4 bg-red-50 rounded-lg">
+        <XCircle className="h-5 w-5 text-red-500" />
+        <span className="text-sm font-medium text-red-600">Заказ отменён</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-3 px-4">
+      <div className="flex items-center justify-between relative">
+        {/* Линия фона */}
+        <div className="absolute top-4 left-6 right-6 h-0.5 bg-gray-200" />
+        {/* Линия прогресса */}
+        <div
+          className="absolute top-4 left-6 h-0.5 transition-all duration-500"
+          style={{
+            backgroundColor: primaryColor,
+            width: `calc(${(currentIdx / (TIMELINE_STEPS.length - 1)) * 100}% - 48px)`,
+          }}
+        />
+
+        {TIMELINE_STEPS.map((step, idx) => {
+          const isCompleted = idx <= currentIdx;
+          const isCurrent = idx === currentIdx;
+          const Icon = step.icon;
+          return (
+            <div key={step.status} className="flex flex-col items-center z-10">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                  isCompleted
+                    ? "text-white"
+                    : "bg-gray-200 text-gray-400"
+                } ${isCurrent ? "ring-2 ring-offset-2" : ""}`}
+                style={
+                  isCompleted
+                    ? { backgroundColor: primaryColor }
+                    : {}
+                }
+              >
+                <Icon className="h-4 w-4" />
+              </div>
+              <span
+                className={`text-xs mt-1.5 ${
+                  isCompleted ? "font-medium" : "text-gray-400"
+                }`}
+                style={isCompleted ? { color: primaryColor } : {}}
+              >
+                {step.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function CustomerOrdersPage({
   params,
@@ -59,6 +145,8 @@ export default function CustomerOrdersPage({
               {getStatusLabel(order.status)}
             </Badge>
           </div>
+
+          <OrderTimeline status={order.status} primaryColor={primaryColor} />
 
           <div className="p-4 space-y-2">
             {order.order_items?.map((item, i) => (

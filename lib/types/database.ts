@@ -110,6 +110,18 @@ export type Review = {
   created_at: string;
 };
 
+export type Wishlist = {
+  id: string;
+  customer_id: string;
+  product_id: string;
+  store_id: string;
+  created_at: string;
+};
+
+export type WishlistWithProduct = Wishlist & {
+  products: Pick<Product, "id" | "name" | "price" | "images" | "stock">;
+};
+
 // Составные типы
 export type StoreWithSettings = Store & {
   store_settings: StoreSettings | null;
@@ -140,6 +152,7 @@ export type Database = {
       order_items: { Row: OrderItem; Insert: Omit<OrderItem, "id" | "created_at">; Update: Partial<OrderItem> };
       promo_codes: { Row: PromoCode; Insert: Omit<PromoCode, "id" | "created_at" | "used_count">; Update: Partial<PromoCode> };
       reviews: { Row: Review; Insert: Omit<Review, "id" | "created_at">; Update: Partial<Review> };
+      wishlists: { Row: Wishlist; Insert: Omit<Wishlist, "id" | "created_at">; Update: Partial<Wishlist> };
     };
   };
 };

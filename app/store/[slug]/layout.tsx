@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -122,6 +123,9 @@ function StoreShell({
                 <Link href={`${baseUrl}/orders`} className="text-sm text-gray-300 hover:text-white">
                   Мои заказы
                 </Link>
+                <Link href={`${baseUrl}/wishlist`} className="text-gray-300 hover:text-white">
+                  <Heart className="h-5 w-5" />
+                </Link>
                 <Link href={`${baseUrl}/cart`} className="relative text-gray-300 hover:text-white">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
@@ -165,6 +169,9 @@ function StoreShell({
               <>
                 <Link href={`${baseUrl}/orders`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
                   Мои заказы
+                </Link>
+                <Link href={`${baseUrl}/wishlist`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
+                  Избранное
                 </Link>
                 <Link href={`${baseUrl}/cart`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
                   Корзина ({cartCount})

@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import { Search, ShoppingCart, Star, SlidersHorizontal } from "lucide-react";
+import { Search, ShoppingCart, Star, SlidersHorizontal, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { usePublicProducts } from "@/lib/hooks/use-products";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useStoreProductRatings } from "@/lib/hooks/use-reviews";
+import { useWishlistIds, useAddToWishlist, useRemoveFromWishlist } from "@/lib/hooks/use-wishlist";
 import { formatPrice, PRODUCT_CATEGORIES } from "@/lib/helpers";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types/database";
@@ -42,6 +43,7 @@ export default function StoreFrontPage({
     priceMax: priceMax ? Number(priceMax) : undefined,
   });
   const { data: ratings } = useStoreProductRatings(store?.id);
+  const wishlistIds = useWishlistIds(store?.id);
 
   // Сортировка по популярности (кол-во отзывов) — клиентская
   const sortedProducts =
@@ -172,6 +174,7 @@ export default function StoreFrontPage({
               storeId={store!.id}
               primaryColor={primaryColor}
               rating={ratings?.[product.id]}
+              isWishlisted={wishlistIds.has(product.id)}
             />
           ))}
         </div>
@@ -186,15 +189,19 @@ function ProductCard({
   storeId,
   primaryColor,
   rating,
+  isWishlisted,
 }: {
   product: Product;
   storeSlug: string;
   storeId: string;
   primaryColor: string;
   rating?: { avg: number; count: number };
+  isWishlisted: boolean;
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const { data: profile } = useProfile();
+  const addToWishlist = useAddToWishlist();
+  const removeFromWishlist = useRemoveFromWishlist();
 
   const handleAdd = () => {
     if (!profile || profile.role !== "customer") {
@@ -211,8 +218,32 @@ function ProductCard({
     toast.success("Добавлено в корзину");
   };
 
+  const handleToggleWishlist = () => {
+    if (!profile || profile.role !== "customer") {
+      toast.error("Войдите, чтобы добавить в избранное");
+      return;
+    }
+    if (isWishlisted) {
+      removeFromWishlist.mutate({ productId: product.id, storeId });
+    } else {
+      addToWishlist.mutate({ productId: product.id, storeId });
+      toast.success("Добавлено в избранное");
+    }
+  };
+
   return (
-    <div className="rounded-xl border overflow-hidden hover:shadow-md transition-shadow bg-white">
+    <div className="rounded-xl border overflow-hidden hover:shadow-md transition-shadow bg-white relative">
+      {/* Сердечко избранное */}
+      <button
+        onClick={handleToggleWishlist}
+        className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors shadow-sm"
+      >
+        <Heart
+          className="h-4 w-4"
+          fill={isWishlisted ? "#ef4444" : "none"}
+          stroke={isWishlisted ? "#ef4444" : "#9ca3af"}
+        />
+      </button>
       <a href={`/store/${storeSlug}/product/${product.id}`}>
         {product.images[0] ? (
           <img
