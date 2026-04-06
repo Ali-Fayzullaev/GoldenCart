@@ -94,6 +94,16 @@ export type PromoCode = {
   created_at: string;
 };
 
+export type Review = {
+  id: string;
+  product_id: string;
+  customer_id: string;
+  store_id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+};
+
 // Составные типы
 export type StoreWithSettings = Store & {
   store_settings: StoreSettings | null;
@@ -105,6 +115,10 @@ export type OrderWithItems = Order & {
 
 export type StoreCustomerWithProfile = StoreCustomer & {
   profiles: Pick<Profile, "full_name" | "email" | "avatar_url">;
+};
+
+export type ReviewWithProfile = Review & {
+  profiles: Pick<Profile, "full_name" | "avatar_url">;
 };
 
 // Supabase Database type (для generic клиента)
@@ -119,6 +133,7 @@ export type Database = {
       orders: { Row: Order; Insert: Omit<Order, "id" | "created_at">; Update: Partial<Order> };
       order_items: { Row: OrderItem; Insert: Omit<OrderItem, "id" | "created_at">; Update: Partial<OrderItem> };
       promo_codes: { Row: PromoCode; Insert: Omit<PromoCode, "id" | "created_at" | "used_count">; Update: Partial<PromoCode> };
+      reviews: { Row: Review; Insert: Omit<Review, "id" | "created_at">; Update: Partial<Review> };
     };
   };
 };

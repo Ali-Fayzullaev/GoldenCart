@@ -2,15 +2,17 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingBag } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useProduct } from "@/lib/hooks/use-products";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useProfile } from "@/lib/hooks/use-profile";
+import { useProductReviews, useCreateReview, useDeleteReview } from "@/lib/hooks/use-reviews";
 import { formatPrice } from "@/lib/helpers";
 import { toast } from "sonner";
 import { useState } from "react";
+import type { ReviewWithProfile } from "@/lib/types/database";
 
 export default function ProductDetailPage({
   params,
@@ -25,7 +27,46 @@ export default function ProductDetailPage({
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
+  const { data: reviews } = useProductReviews(id);
+  const createReview = useCreateReview();
+  const deleteReview = useDeleteReview();
+
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [hoverRating, setHoverRating] = useState(0);
+
   const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
+
+  const avgRating =
+    reviews && reviews.length > 0
+      ? Math.round(
+          (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10
+        ) / 10
+      : 0;
+
+  const handleSubmitReview = async () => {
+    if (!profile || profile.role !== "customer") {
+      toast.error("Войдите как покупатель, чтобы оставить отзыв");
+      return;
+    }
+    if (reviewComment.trim().length < 3) {
+      toast.error("Комментарий должен быть минимум 3 символа");
+      return;
+    }
+    try {
+      await createReview.mutateAsync({
+        product_id: id,
+        store_id: product!.store_id,
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+      setReviewComment("");
+      setReviewRating(5);
+      toast.success("Отзыв опубликован!");
+    } catch {
+      toast.error("Не удалось отправить отзыв");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -112,6 +153,31 @@ export default function ProductDetailPage({
 
           <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
 
+          {/* Average rating */}
+          {reviews && reviews.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className="h-5 w-5"
+                    fill={s <= Math.round(avgRating) ? "#facc15" : "none"}
+                    stroke={s <= Math.round(avgRating) ? "#facc15" : "#d1d5db"}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-500">
+                {avgRating} ({reviews.length}{" "}
+                {reviews.length === 1
+                  ? "отзыв"
+                  : reviews.length < 5
+                  ? "отзыва"
+                  : "отзывов"}
+                )
+              </span>
+            </div>
+          )}
+
           {product.stock > 0 && (
             <div className="flex items-center gap-4 pt-4">
               <div className="flex items-center border rounded-lg">
@@ -143,6 +209,115 @@ export default function ProductDetailPage({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Отзывы */}
+      <div className="mt-10 border-t pt-8">
+        <h2 className="text-2xl font-bold mb-6">
+          Отзывы{" "}
+          {reviews && reviews.length > 0 && (
+            <span className="text-gray-400 text-lg font-normal">
+              ({reviews.length})
+            </span>
+          )}
+        </h2>
+
+        {/* Форма отзыва */}
+        {profile?.role === "customer" && (
+          <div className="border rounded-xl p-4 mb-6 space-y-3">
+            <p className="font-medium">Оставьте отзыв</p>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setReviewRating(s)}
+                  onMouseEnter={() => setHoverRating(s)}
+                  onMouseLeave={() => setHoverRating(0)}
+                >
+                  <Star
+                    className="h-7 w-7 transition-colors"
+                    fill={
+                      s <= (hoverRating || reviewRating) ? "#facc15" : "none"
+                    }
+                    stroke={
+                      s <= (hoverRating || reviewRating) ? "#facc15" : "#d1d5db"
+                    }
+                  />
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={reviewComment}
+              onChange={(e) => setReviewComment(e.target.value)}
+              placeholder="Напишите ваш отзыв..."
+              rows={3}
+              className="w-full border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <Button
+              onClick={handleSubmitReview}
+              disabled={createReview.isPending}
+              style={{ backgroundColor: primaryColor }}
+              className="text-white hover:opacity-90"
+            >
+              {createReview.isPending ? "Отправка..." : "Отправить отзыв"}
+            </Button>
+          </div>
+        )}
+
+        {/* Список отзывов */}
+        {!reviews || reviews.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">
+            Пока нет отзывов. Будьте первым!
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="border rounded-xl p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className="h-4 w-4"
+                          fill={s <= review.rating ? "#facc15" : "none"}
+                          stroke={s <= review.rating ? "#facc15" : "#d1d5db"}
+                        />
+                      ))}
+                    </div>
+                    <span className="font-medium text-sm">
+                      {review.profiles?.full_name || "Покупатель"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">
+                      {new Date(review.created_at).toLocaleDateString("ru-RU")}
+                    </span>
+                    {(profile?.id === review.customer_id ||
+                      profile?.role === "seller") && (
+                      <button
+                        onClick={() =>
+                          deleteReview.mutate({
+                            id: review.id,
+                            productId: review.product_id,
+                            storeId: review.store_id,
+                          })
+                        }
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">{review.comment}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

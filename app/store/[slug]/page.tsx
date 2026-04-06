@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { usePublicProducts } from "@/lib/hooks/use-products";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useProfile } from "@/lib/hooks/use-profile";
+import { useStoreProductRatings } from "@/lib/hooks/use-reviews";
 import { formatPrice, PRODUCT_CATEGORIES } from "@/lib/helpers";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types/database";
@@ -33,6 +34,7 @@ export default function StoreFrontPage({
     search,
     category,
   });
+  const { data: ratings } = useStoreProductRatings(store?.id);
 
   const settings = store?.store_settings;
   const primaryColor = settings?.primary_color || "#f59e0b";
@@ -94,6 +96,7 @@ export default function StoreFrontPage({
               storeSlug={slug}
               storeId={store!.id}
               primaryColor={primaryColor}
+              rating={ratings?.[product.id]}
             />
           ))}
         </div>
@@ -107,11 +110,13 @@ function ProductCard({
   storeSlug,
   storeId,
   primaryColor,
+  rating,
 }: {
   product: Product;
   storeSlug: string;
   storeId: string;
   primaryColor: string;
+  rating?: { avg: number; count: number };
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const { data: profile } = useProfile();
@@ -150,6 +155,21 @@ function ProductCard({
         <a href={`/store/${storeSlug}/product/${product.id}`}>
           <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
         </a>
+        {rating && (
+          <div className="flex items-center gap-1 mb-1">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className="h-3.5 w-3.5"
+                  fill={s <= Math.round(rating.avg) ? "#facc15" : "none"}
+                  stroke={s <= Math.round(rating.avg) ? "#facc15" : "#d1d5db"}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-gray-400">{rating.avg}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="font-bold" style={{ color: primaryColor }}>
             {formatPrice(product.price)}

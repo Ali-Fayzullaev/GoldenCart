@@ -80,3 +80,11 @@ export type StoreSettingsInput = z.infer<typeof storeSettingsSchema>;
 export type ProductInput = z.infer<typeof productSchema>;
 export type PromoCodeInput = z.infer<typeof promoCodeSchema>;
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
+
+// --- Отзывы ---
+export const reviewSchema = z.object({
+  rating: z.coerce.number().int().min(1, "Минимум 1 звезда").max(5, "Максимум 5 звёзд"),
+  comment: z.string().min(3, "Минимум 3 символа").max(1000, "Максимум 1000 символов"),
+});
+
+export type ReviewInput = z.infer<typeof reviewSchema>;
