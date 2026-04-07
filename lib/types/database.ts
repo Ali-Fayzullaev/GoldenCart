@@ -22,6 +22,8 @@ export type Store = {
   telegram_chat_id: string | null;
   first_order_discount_type: "percent" | "fixed" | null;
   first_order_discount_value: number;
+  reviews_enabled: boolean;
+  reviews_moderation: boolean;
   is_active: boolean;
   created_at: string;
 };
@@ -38,6 +40,10 @@ export type StoreSettings = {
   logo_url: string | null;
   banner_url: string | null;
   welcome_text: string;
+  instagram_url: string;
+  telegram_url: string;
+  vk_url: string;
+  whatsapp_url: string;
   updated_at: string;
 };
 
@@ -109,6 +115,7 @@ export type Review = {
   store_id: string;
   rating: number;
   comment: string;
+  status: "pending" | "approved" | "rejected";
   created_at: string;
 };
 
@@ -156,6 +163,38 @@ export type StoreCategory = {
   created_at: string;
 };
 
+export type ShippingMethod = {
+  id: string;
+  store_id: string;
+  name: string;
+  price: number;
+  min_order_free: number | null;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+export type BlogPost = {
+  id: string;
+  store_id: string;
+  title: string;
+  slug: string;
+  content: PageBlock[];
+  cover_image: string | null;
+  is_published: boolean;
+  created_at: string;
+};
+
+export type StoreFaq = {
+  id: string;
+  store_id: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+};
+
 export type WishlistWithProduct = Wishlist & {
   products: Pick<Product, "id" | "name" | "price" | "images" | "stock">;
 };
@@ -194,6 +233,9 @@ export type Database = {
       store_pages: { Row: StorePage; Insert: Omit<StorePage, "id" | "created_at">; Update: Partial<StorePage> };
       store_banners: { Row: StoreBanner; Insert: Omit<StoreBanner, "id" | "created_at">; Update: Partial<StoreBanner> };
       store_categories: { Row: StoreCategory; Insert: Omit<StoreCategory, "id" | "created_at">; Update: Partial<StoreCategory> };
+      shipping_methods: { Row: ShippingMethod; Insert: Omit<ShippingMethod, "id" | "created_at">; Update: Partial<ShippingMethod> };
+      blog_posts: { Row: BlogPost; Insert: Omit<BlogPost, "id" | "created_at">; Update: Partial<BlogPost> };
+      store_faqs: { Row: StoreFaq; Insert: Omit<StoreFaq, "id" | "created_at">; Update: Partial<StoreFaq> };
     };
   };
 };

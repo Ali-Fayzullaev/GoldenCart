@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Tag, Check, X, Gift } from "lucide-react";
+import { Loader2, Tag, Check, X, Gift, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useCreateOrder } from "@/lib/hooks/use-orders";
 import { useValidatePromoCode } from "@/lib/hooks/use-promo-codes";
+import { useActiveShippingMethods } from "@/lib/hooks/use-shipping";
 import { useCartStore } from "@/lib/store/cart-store";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { formatPrice } from "@/lib/helpers";
@@ -38,6 +39,8 @@ export default function CheckoutPage({
   const [promoInput, setPromoInput] = useState("");
   const [firstOrderDiscount, setFirstOrderDiscount] = useState(0);
   const validatePromo = useValidatePromoCode();
+  const { data: shippingMethods } = useActiveShippingMethods(store?.id);
+  const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
 
   useEffect(() => {
     if (store) {
@@ -70,7 +73,15 @@ export default function CheckoutPage({
     checkFirstOrder();
   }, [store, getStoreTotal]);
 
-  const finalTotal = Math.max(0, total - discount - firstOrderDiscount);
+  const shippingCost = (() => {
+    if (!shippingMethods?.length || !selectedShipping) return 0;
+    const method = shippingMethods.find((m) => m.id === selectedShipping);
+    if (!method) return 0;
+    if (method.min_order_free && total >= method.min_order_free) return 0;
+    return method.price;
+  })();
+
+  const finalTotal = Math.max(0, total - discount - firstOrderDiscount + shippingCost);
 
   const handleApplyPromo = async () => {
     if (!store || !promoInput.trim()) return;
@@ -245,12 +256,60 @@ export default function CheckoutPage({
               <span>−{formatPrice(firstOrderDiscount)}</span>
             </div>
           )}
+          {shippingCost > 0 && (
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Доставка</span>
+              <span>+{formatPrice(shippingCost)}</span>
+            </div>
+          )}
           <div className="flex justify-between font-bold text-lg pt-1">
             <span>Итого</span>
             <span style={{ color: primaryColor }}>{formatPrice(finalTotal)}</span>
           </div>
         </div>
       </div>
+
+      {/* Shipping */}
+      {shippingMethods && shippingMethods.length > 0 && (
+        <div className="bg-white rounded-xl border p-6 space-y-3">
+          <h2 className="font-semibold flex items-center gap-2">
+            <Truck className="h-5 w-5" /> Способ доставки
+          </h2>
+          {shippingMethods.map((method) => {
+            const isFree = method.min_order_free && total >= method.min_order_free;
+            return (
+              <label
+                key={method.id}
+                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  selectedShipping === method.id
+                    ? "border-amber-400 bg-amber-50"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="shipping"
+                  value={method.id}
+                  checked={selectedShipping === method.id}
+                  onChange={() => setSelectedShipping(method.id)}
+                  className="accent-amber-500"
+                />
+                <div className="flex-1">
+                  <span className="font-medium text-sm">{method.name}</span>
+                  {method.min_order_free && (
+                    <p className="text-xs text-gray-400">
+                      Бесплатно от {formatPrice(method.min_order_free)}
+                    </p>
+                  )}
+                </div>
+                <span className="text-sm font-medium" style={{ color: isFree ? "#16a34a" : undefined }}>
+                  {isFree ? "Бесплатно" : method.price > 0 ? formatPrice(method.price) : "Бесплатно"}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
 
       {/* Delivery form */}
       <form

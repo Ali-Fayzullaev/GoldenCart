@@ -4,7 +4,7 @@ import type { Review, ReviewWithProfile } from "@/lib/types/database";
 
 const supabase = createClient();
 
-// Отзывы к товару (публичные)
+// Отзывы к товару (публичные — только approved)
 export function useProductReviews(productId: string | undefined) {
   return useQuery({
     queryKey: ["reviews", productId],
@@ -13,6 +13,7 @@ export function useProductReviews(productId: string | undefined) {
         .from("reviews")
         .select("*, profiles(full_name, avatar_url)")
         .eq("product_id", productId!)
+        .eq("status", "approved")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -126,6 +127,43 @@ export function useDeleteReview() {
       queryClient.invalidateQueries({
         queryKey: ["product-ratings", result.storeId],
       });
+      queryClient.invalidateQueries({ queryKey: ["store-reviews"] });
+    },
+  });
+}
+
+// --- Модерация (для дашборда продавца) ---
+
+export function useStoreReviews(storeId: string | undefined) {
+  return useQuery({
+    queryKey: ["store-reviews", storeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, profiles(full_name, avatar_url)")
+        .eq("store_id", storeId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as (ReviewWithProfile & { status: string })[];
+    },
+    enabled: !!storeId,
+  });
+}
+
+export function useModerateReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "approved" | "rejected" }) => {
+      const { error } = await supabase
+        .from("reviews")
+        .update({ status } as never)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["store-reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["product-ratings"] });
     },
   });
 }

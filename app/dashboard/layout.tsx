@@ -16,6 +16,11 @@ import {
   FileText,
   ImageIcon,
   FolderTree,
+  Truck,
+  MessageSquare,
+  BookOpen,
+  HelpCircle,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -31,9 +36,14 @@ const navItems = [
   { href: "/dashboard/products", label: "Товары", icon: Package },
   { href: "/dashboard/categories", label: "Категории", icon: FolderTree },
   { href: "/dashboard/orders", label: "Заказы", icon: ShoppingCart },
+  { href: "/dashboard/shipping", label: "Доставка", icon: Truck },
   { href: "/dashboard/promo", label: "Промокоды", icon: Tag },
+  { href: "/dashboard/reviews", label: "Отзывы", icon: MessageSquare },
   { href: "/dashboard/pages", label: "Страницы", icon: FileText },
+  { href: "/dashboard/blog", label: "Блог", icon: BookOpen },
+  { href: "/dashboard/faq", label: "FAQ", icon: HelpCircle },
   { href: "/dashboard/banners", label: "Баннеры", icon: ImageIcon },
+  { href: "/dashboard/social", label: "Соцсети", icon: Globe },
   { href: "/dashboard/import", label: "Импорт CSV", icon: Upload },
   { href: "/dashboard/customers", label: "Покупатели", icon: Users },
   { href: "/dashboard/share", label: "Поделиться", icon: Share2 },
