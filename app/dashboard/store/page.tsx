@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Send, CheckCircle2, AlertCircle, Gift, Copy, Check, ExternalLink, Share2 } from "lucide-react";
+import { Loader2, Send, CheckCircle2, AlertCircle, Gift, Copy, Check, ExternalLink, Share2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -159,6 +159,14 @@ export default function StoreManagementPage() {
           storeId={store.id}
           currentType={store.first_order_discount_type}
           currentValue={store.first_order_discount_value}
+        />
+      )}
+
+      {/* Порог низкого остатка */}
+      {store && (
+        <LowStockThresholdSettings
+          storeId={store.id}
+          currentThreshold={store.low_stock_threshold ?? 5}
         />
       )}
 
@@ -398,6 +406,66 @@ function FirstOrderDiscountSettings({
           />
         </div>
       )}
+
+      <Button
+        type="button"
+        onClick={handleSave}
+        className="w-full bg-amber-500 hover:bg-amber-600"
+        disabled={updateStore.isPending}
+      >
+        {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Сохранить
+      </Button>
+    </div>
+  );
+}
+
+function LowStockThresholdSettings({
+  storeId,
+  currentThreshold,
+}: {
+  storeId: string;
+  currentThreshold: number;
+}) {
+  const updateStore = useUpdateStore();
+  const [threshold, setThreshold] = useState(String(currentThreshold));
+
+  const handleSave = async () => {
+    try {
+      await updateStore.mutateAsync({
+        id: storeId,
+        low_stock_threshold: Math.max(0, Number(threshold) || 0),
+      });
+      toast.success("Порог остатка сохранён");
+    } catch {
+      toast.error("Ошибка сохранения");
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-red-50 rounded-lg">
+          <AlertTriangle className="h-5 w-5 text-red-500" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Предупреждение о низком остатке</h2>
+          <p className="text-sm text-gray-500">
+            Показать предупреждение на дашборде, когда остаток товара ≤ порога
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Label className="shrink-0">Порог (шт.)</Label>
+        <Input
+          type="number"
+          value={threshold}
+          onChange={(e) => setThreshold(e.target.value)}
+          className="w-24"
+          min={0}
+        />
+      </div>
 
       <Button
         type="button"

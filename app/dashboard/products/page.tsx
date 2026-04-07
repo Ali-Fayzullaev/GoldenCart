@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Loader2, Package, X, Link2, Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Download, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Package, X, Link2, Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Download, ChevronDown, Copy, EyeOff, Eye, DollarSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,8 @@ type ImportResult = { imported: number; total: number; errors?: string[] };
 export default function ProductsManagementPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: products, isLoading: productsLoading } = useStoreProducts(store?.id);
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
@@ -61,6 +63,10 @@ export default function ProductsManagementPage() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"" | "delete" | "hide" | "show" | "price">("");
+  const [bulkPrice, setBulkPrice] = useState("");
+  const [bulkPending, setBulkPending] = useState(false);
 
   const handleEdit = (product: Product) => {
     setEditProduct(product);
@@ -74,6 +80,81 @@ export default function ProductsManagementPage() {
       toast.success("Товар удалён");
     } catch {
       toast.error("Ошибка удаления");
+    }
+  };
+
+  const handleDuplicate = async (product: Product) => {
+    if (!store) return;
+    try {
+      await createProduct.mutateAsync({
+        store_id: store.id,
+        name: product.name + " (копия)",
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        category: product.category,
+        images: product.images,
+        variants: product.variants,
+      });
+      toast.success("Товар скопирован");
+    } catch {
+      toast.error("Ошибка копирования");
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!products) return;
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map((p) => p.id)));
+    }
+  };
+
+  const handleBulkApply = async () => {
+    if (!bulkAction || !selectedIds.size) return;
+    setBulkPending(true);
+    const supabase = createClient();
+    try {
+      const ids = Array.from(selectedIds);
+      if (bulkAction === "delete") {
+        if (!confirm(`Удалить ${ids.length} товар(ов)?`)) { setBulkPending(false); return; }
+        const { error } = await supabase.from("products").delete().in("id", ids);
+        if (error) throw error;
+        toast.success(`Удалено: ${ids.length}`);
+      } else if (bulkAction === "hide") {
+        const { error } = await supabase.from("products").update({ is_active: false } as never).in("id", ids);
+        if (error) throw error;
+        toast.success(`Скрыто: ${ids.length}`);
+      } else if (bulkAction === "show") {
+        const { error } = await supabase.from("products").update({ is_active: true } as never).in("id", ids);
+        if (error) throw error;
+        toast.success(`Активировано: ${ids.length}`);
+      } else if (bulkAction === "price") {
+        const newPrice = Number(bulkPrice);
+        if (!newPrice || newPrice <= 0) { toast.error("Укажите корректную цену"); setBulkPending(false); return; }
+        const { error } = await supabase.from("products").update({ price: newPrice } as never).in("id", ids);
+        if (error) throw error;
+        toast.success(`Цена обновлена: ${ids.length} товар(ов)`);
+      }
+      setSelectedIds(new Set());
+      setBulkAction("");
+      setBulkPrice("");
+      queryClient.invalidateQueries({ queryKey: ["store-products"] });
+      queryClient.invalidateQueries({ queryKey: ["public-products"] });
+    } catch {
+      toast.error("Ошибка массового действия");
+    } finally {
+      setBulkPending(false);
     }
   };
 
@@ -184,10 +265,74 @@ export default function ProductsManagementPage() {
           <p className="text-gray-500">Нет товаров. Добавьте первый!</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <>
+          {/* Bulk actions bar */}
+          {selectedIds.size > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-amber-800">
+                Выбрано: {selectedIds.size}
+              </span>
+              <Select value={bulkAction} onValueChange={(val) => val !== null && setBulkAction(val as typeof bulkAction)}>
+                <SelectTrigger className="w-48 h-9 bg-white">
+                  <SelectValue placeholder="Действие..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="delete">
+                    <span className="flex items-center gap-1.5"><Trash2 className="h-3.5 w-3.5 text-red-500" /> Удалить</span>
+                  </SelectItem>
+                  <SelectItem value="hide">
+                    <span className="flex items-center gap-1.5"><EyeOff className="h-3.5 w-3.5" /> Скрыть</span>
+                  </SelectItem>
+                  <SelectItem value="show">
+                    <span className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> Активировать</span>
+                  </SelectItem>
+                  <SelectItem value="price">
+                    <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5" /> Изменить цену</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {bulkAction === "price" && (
+                <Input
+                  type="number"
+                  placeholder="Новая цена ₽"
+                  value={bulkPrice}
+                  onChange={(e) => setBulkPrice(e.target.value)}
+                  className="w-32 h-9"
+                  min={0}
+                />
+              )}
+              {bulkAction && (
+                <Button
+                  size="sm"
+                  onClick={handleBulkApply}
+                  disabled={bulkPending}
+                  className="bg-amber-500 hover:bg-amber-600"
+                >
+                  {bulkPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Применить"}
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSelectedIds(new Set()); setBulkAction(""); }}
+              >
+                Отмена
+              </Button>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <input
+                    type="checkbox"
+                    checked={products.length > 0 && selectedIds.size === products.length}
+                    onChange={toggleSelectAll}
+                    className="rounded"
+                  />
+                </TableHead>
                 <TableHead>Товар</TableHead>
                 <TableHead>Категория</TableHead>
                 <TableHead>Цена</TableHead>
@@ -198,7 +343,15 @@ export default function ProductsManagementPage() {
             </TableHeader>
             <TableBody>
               {products.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} className={selectedIds.has(product.id) ? "bg-amber-50" : ""}>
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelect(product.id)}
+                      className="rounded"
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {product.images[0] ? (
@@ -219,7 +372,11 @@ export default function ProductsManagementPage() {
                     <Badge variant="secondary">{product.category}</Badge>
                   </TableCell>
                   <TableCell>{formatPrice(product.price)}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
+                  <TableCell>
+                    <span className={product.stock === 0 ? "text-red-500 font-medium" : product.stock <= (store?.low_stock_threshold ?? 5) ? "text-amber-500 font-medium" : ""}>
+                      {product.stock}
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={product.is_active ? "default" : "secondary"}>
                       {product.is_active ? "Активен" : "Скрыт"}
@@ -227,6 +384,14 @@ export default function ProductsManagementPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDuplicate(product)}
+                        title="Копировать"
+                      >
+                        <Copy className="h-4 w-4 text-gray-500" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -248,6 +413,7 @@ export default function ProductsManagementPage() {
             </TableBody>
           </Table>
         </div>
+        </>
       )}
 
       {/* CSV Import section */}

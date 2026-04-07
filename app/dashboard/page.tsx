@@ -13,6 +13,7 @@ import {
   TrendingDown,
   ArrowUpRight,
   Tag,
+  AlertTriangle,
 } from "lucide-react";
 import { useMyStore } from "@/lib/hooks/use-stores";
 import { useStoreProducts } from "@/lib/hooks/use-products";
@@ -245,6 +246,55 @@ export default function DashboardPage() {
           </Link>
         </div>
       )}
+
+      {/* Low stock alert */}
+      {(() => {
+        const threshold = store.low_stock_threshold ?? 5;
+        const lowStockItems = products?.filter((p) => p.is_active && p.stock <= threshold && p.stock > 0) || [];
+        const outOfStockItems = products?.filter((p) => p.is_active && p.stock === 0) || [];
+        if (!lowStockItems.length && !outOfStockItems.length) return null;
+        return (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <p className="font-medium text-red-800">
+                  {outOfStockItems.length > 0 && `Нет в наличии: ${outOfStockItems.length}`}
+                  {outOfStockItems.length > 0 && lowStockItems.length > 0 && " · "}
+                  {lowStockItems.length > 0 && `Заканчивается: ${lowStockItems.length}`}
+                </p>
+              </div>
+              <Link
+                href="/dashboard/products"
+                className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+              >
+                К товарам
+              </Link>
+            </div>
+            <div className="space-y-1.5">
+              {outOfStockItems.slice(0, 3).map((p) => (
+                <div key={p.id} className="flex items-center gap-2 text-sm">
+                  <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                  <span className="text-red-700 truncate">{p.name}</span>
+                  <span className="text-red-500 font-medium ml-auto shrink-0">0 шт.</span>
+                </div>
+              ))}
+              {lowStockItems.slice(0, 3).map((p) => (
+                <div key={p.id} className="flex items-center gap-2 text-sm">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <span className="text-red-700 truncate">{p.name}</span>
+                  <span className="text-amber-600 font-medium ml-auto shrink-0">{p.stock} шт.</span>
+                </div>
+              ))}
+              {(outOfStockItems.length + lowStockItems.length > 6) && (
+                <p className="text-xs text-red-400">
+                  и ещё {outOfStockItems.length + lowStockItems.length - 6} товар(ов)...
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Analytics section */}
       {analytics && orders && orders.length > 0 && (

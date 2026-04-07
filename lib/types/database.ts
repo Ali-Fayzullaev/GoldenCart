@@ -24,6 +24,7 @@ export type Store = {
   first_order_discount_value: number;
   reviews_enabled: boolean;
   reviews_moderation: boolean;
+  low_stock_threshold: number;
   is_active: boolean;
   created_at: string;
 };
