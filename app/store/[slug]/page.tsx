@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useCallback } from "react";
-import { Search, ShoppingCart, Star, SlidersHorizontal, Heart, Clock, GitCompareArrows, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShoppingCart, Star, SlidersHorizontal, Heart, Clock, GitCompareArrows, ChevronLeft, ChevronRight, Eye, X, Minus, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ export default function StoreFrontPage({
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const { data: products, isLoading } = usePublicProducts(store?.id, {
     search,
     category,
@@ -196,6 +197,7 @@ export default function StoreFrontPage({
               rating={ratings?.[product.id]}
               isWishlisted={wishlistIds.has(product.id)}
               isCompared={compareIds.has(product.id)}
+              onQuickView={() => setQuickViewProduct(product)}
             />
           ))}
         </div>
@@ -250,6 +252,17 @@ export default function StoreFrontPage({
           </div>
         </div>
       )}
+
+      {/* Quick View Modal */}
+      {quickViewProduct && store && (
+        <QuickViewModal
+          product={quickViewProduct}
+          storeId={store.id}
+          storeSlug={slug}
+          primaryColor={primaryColor}
+          onClose={() => setQuickViewProduct(null)}
+        />
+      )}
     </div>
   );
 }
@@ -262,6 +275,7 @@ function ProductCard({
   rating,
   isWishlisted,
   isCompared,
+  onQuickView,
 }: {
   product: Product;
   storeSlug: string;
@@ -270,6 +284,7 @@ function ProductCard({
   rating?: { avg: number; count: number };
   isWishlisted: boolean;
   isCompared: boolean;
+  onQuickView: () => void;
 }) {
   const addItem = useCartStore((s) => s.addItem);
   const { data: profile } = useProfile();
@@ -347,7 +362,7 @@ function ProductCard({
           stroke={isCompared ? "#3b82f6" : "#9ca3af"}
         />
       </button>
-      <a href={`/store/${storeSlug}/product/${product.id}`}>
+      <a href={`/store/${storeSlug}/product/${product.id}`} className="relative group/img">
         {product.images[0] ? (
           <img
             src={product.images[0]}
@@ -359,6 +374,14 @@ function ProductCard({
             <ShoppingCart className="h-8 w-8 text-gray-300" />
           </div>
         )}
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView(); }}
+          className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover/img:bg-black/30 transition-colors"
+        >
+          <span className="opacity-0 group-hover/img:opacity-100 transition-opacity bg-white rounded-full p-2 shadow-lg">
+            <Eye className="h-5 w-5 text-gray-700" />
+          </span>
+        </button>
       </a>
       <div className="p-3">
         <a href={`/store/${storeSlug}/product/${product.id}`}>
@@ -472,6 +495,133 @@ function BannerSlider({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function QuickViewModal({
+  product,
+  storeId,
+  storeSlug,
+  primaryColor,
+  onClose,
+}: {
+  product: Product;
+  storeId: string;
+  storeSlug: string;
+  primaryColor: string;
+  onClose: () => void;
+}) {
+  const addItem = useCartStore((s) => s.addItem);
+  const { data: profile } = useProfile();
+  const [qty, setQty] = useState(1);
+
+  const handleAdd = () => {
+    if (!profile || profile.role !== "customer") {
+      toast.error("Войдите как покупатель");
+      return;
+    }
+    addItem(
+      {
+        product_id: product.id,
+        store_id: storeId,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] || null,
+      },
+      qty
+    );
+    toast.success(`${product.name} × ${qty} добавлено в корзину`);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+
+      {/* Modal */}
+      <div
+        className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Image */}
+        {product.images[0] ? (
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            className="w-full h-64 object-cover rounded-t-2xl"
+          />
+        ) : (
+          <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-t-2xl">
+            <ShoppingCart className="h-12 w-12 text-gray-300" />
+          </div>
+        )}
+
+        <div className="p-5 space-y-4">
+          {/* Name + Price */}
+          <div>
+            <h2 className="text-xl font-bold">{product.name}</h2>
+            <p className="text-2xl font-bold mt-1" style={{ color: primaryColor }}>
+              {formatPrice(product.price)}
+            </p>
+          </div>
+
+          {/* Description */}
+          {product.description && (
+            <p className="text-sm text-gray-600 line-clamp-4">{product.description}</p>
+          )}
+
+          {/* Stock */}
+          <p className="text-sm text-gray-500">
+            {product.stock > 0 ? `В наличии: ${product.stock} шт.` : "Нет в наличии"}
+          </p>
+
+          {/* Quantity + Add to cart */}
+          {product.stock > 0 && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center border rounded-lg">
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="p-2 hover:bg-gray-100 transition-colors rounded-l-lg"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-10 text-center font-medium text-sm">{qty}</span>
+                <button
+                  onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                  className="p-2 hover:bg-gray-100 transition-colors rounded-r-lg"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <Button
+                onClick={handleAdd}
+                className="flex-1 text-white hover:opacity-90"
+                style={{ backgroundColor: primaryColor }}
+              >
+                В корзину — {formatPrice(product.price * qty)}
+              </Button>
+            </div>
+          )}
+
+          {/* Link to full page */}
+          <a
+            href={`/store/${storeSlug}/product/${product.id}`}
+            className="block text-center text-sm underline text-gray-500 hover:text-gray-700"
+          >
+            Подробнее о товаре →
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

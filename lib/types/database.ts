@@ -201,6 +201,16 @@ export type StoreFaq = {
   created_at: string;
 };
 
+export type CustomerAddress = {
+  id: string;
+  customer_id: string;
+  label: string;
+  address: string;
+  phone: string;
+  is_default: boolean;
+  created_at: string;
+};
+
 export type WishlistWithProduct = Wishlist & {
   products: Pick<Product, "id" | "name" | "price" | "images" | "stock">;
 };
@@ -242,6 +252,7 @@ export type Database = {
       shipping_methods: { Row: ShippingMethod; Insert: Omit<ShippingMethod, "id" | "created_at">; Update: Partial<ShippingMethod> };
       blog_posts: { Row: BlogPost; Insert: Omit<BlogPost, "id" | "created_at">; Update: Partial<BlogPost> };
       store_faqs: { Row: StoreFaq; Insert: Omit<StoreFaq, "id" | "created_at">; Update: Partial<StoreFaq> };
+      customer_addresses: { Row: CustomerAddress; Insert: Omit<CustomerAddress, "id" | "created_at">; Update: Partial<CustomerAddress> };
     };
   };
 };

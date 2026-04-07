@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Tag, Check, X, Gift, Truck } from "lucide-react";
+import { Loader2, Tag, Check, X, Gift, Truck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useCreateOrder } from "@/lib/hooks/use-orders";
 import { useValidatePromoCode } from "@/lib/hooks/use-promo-codes";
 import { useActiveShippingMethods } from "@/lib/hooks/use-shipping";
+import { useCustomerAddresses } from "@/lib/hooks/use-addresses";
 import { useCartStore } from "@/lib/store/cart-store";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { formatPrice } from "@/lib/helpers";
@@ -40,6 +41,7 @@ export default function CheckoutPage({
   const [firstOrderDiscount, setFirstOrderDiscount] = useState(0);
   const validatePromo = useValidatePromoCode();
   const { data: shippingMethods } = useActiveShippingMethods(store?.id);
+  const { data: savedAddresses } = useCustomerAddresses();
   const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
 
   useEffect(() => {
@@ -112,9 +114,21 @@ export default function CheckoutPage({
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<CheckoutInput>({ resolver: zodResolver(checkoutSchema) as any });
+
+  // Auto-fill default address
+  useEffect(() => {
+    if (savedAddresses?.length) {
+      const def = savedAddresses.find((a) => a.is_default) || savedAddresses[0];
+      if (def) {
+        setValue("shipping_address", def.address);
+        if (def.phone) setValue("phone", def.phone);
+      }
+    }
+  }, [savedAddresses, setValue]);
 
   const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
 
@@ -317,6 +331,31 @@ export default function CheckoutPage({
         className="bg-white rounded-xl border p-6 space-y-4"
       >
         <h2 className="font-semibold">Данные доставки</h2>
+
+        {savedAddresses && savedAddresses.length > 0 && (
+          <div className="space-y-2">
+            <Label>Сохранённые адреса</Label>
+            <div className="flex flex-wrap gap-2">
+              {savedAddresses.map((addr) => (
+                <button
+                  key={addr.id}
+                  type="button"
+                  onClick={() => {
+                    setValue("shipping_address", addr.address);
+                    if (addr.phone) setValue("phone", addr.phone);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                  {addr.label || "Адрес"}
+                  {addr.is_default && (
+                    <span className="text-xs px-1 py-0.5 rounded text-white" style={{ backgroundColor: primaryColor }}>★</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="shipping_address">Адрес доставки</Label>

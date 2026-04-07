@@ -67,15 +67,18 @@ function StoreShell({
   const settings = store.store_settings;
   const { data: profile } = useProfile();
   const supabase = createClient();
-  const getStoreItemCount = useCartStore((s) => s.getStoreItemCount);
+  const cartItems = useCartStore((s) => s.items);
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const { data: cmsPages } = usePublicStorePages(store.id);
   const { data: blogPosts } = usePublicBlogPosts(store.id);
 
   useEffect(() => {
-    setCartCount(getStoreItemCount(store.id));
-  }, [getStoreItemCount, store.id]);
+    const count = cartItems
+      .filter((i) => i.store_id === store.id)
+      .reduce((sum, i) => sum + i.quantity, 0);
+    setCartCount(count);
+  }, [cartItems, store.id]);
 
   const primaryColor = settings?.primary_color || "#f59e0b";
   const secondaryColor = settings?.secondary_color || "#1f2937";
@@ -141,6 +144,9 @@ function StoreShell({
 
             {isLoggedIn && isCustomer ? (
               <>
+                <Link href={`${baseUrl}/profile`} className="text-sm text-gray-300 hover:text-white">
+                  Профиль
+                </Link>
                 <Link href={`${baseUrl}/orders`} className="text-sm text-gray-300 hover:text-white">
                   Мои заказы
                 </Link>
@@ -203,6 +209,9 @@ function StoreShell({
             )}
             {isLoggedIn && isCustomer ? (
               <>
+                <Link href={`${baseUrl}/profile`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
+                  Профиль
+                </Link>
                 <Link href={`${baseUrl}/orders`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
                   Мои заказы
                 </Link>

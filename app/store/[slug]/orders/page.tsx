@@ -1,11 +1,14 @@
 "use client";
 
 import { use } from "react";
-import { ShoppingCart, Package, CheckCircle2, Truck, MapPin, XCircle } from "lucide-react";
+import { ShoppingCart, Package, CheckCircle2, Truck, MapPin, XCircle, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useCustomerOrders } from "@/lib/hooks/use-orders";
+import { useCartStore } from "@/lib/store/cart-store";
 import { formatPrice, getStatusLabel, getStatusColor } from "@/lib/helpers";
+import { toast } from "sonner";
 import type { Order } from "@/lib/types/database";
 
 const TIMELINE_STEPS: {
@@ -101,8 +104,23 @@ export default function CustomerOrdersPage({
   const { slug } = use(params);
   const { data: store } = useStoreBySlug(slug);
   const { data: orders, isLoading } = useCustomerOrders(store?.id);
+  const addItem = useCartStore((s) => s.addItem);
 
   const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
+
+  const handleRepeatOrder = (order: typeof orders extends (infer T)[] | undefined ? T : never) => {
+    if (!order?.order_items?.length || !store) return;
+    for (const item of order.order_items) {
+      addItem({
+        product_id: item.product_id,
+        store_id: store.id,
+        name: item.products?.name || "Товар",
+        price: item.price_at_time,
+        image: item.products?.images?.[0] || null,
+      }, item.quantity);
+    }
+    toast.success(`${order.order_items.length} товар(ов) добавлено в корзину`);
+  };
 
   if (isLoading) {
     return (
@@ -170,11 +188,21 @@ export default function CustomerOrdersPage({
           </div>
 
           <div
-            className="px-4 py-3 flex justify-between font-bold text-white"
+            className="px-4 py-3 flex justify-between items-center font-bold text-white"
             style={{ backgroundColor: primaryColor }}
           >
             <span>Итого</span>
-            <span>{formatPrice(order.total_amount)}</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleRepeatOrder(order)}
+                className="flex items-center gap-1 text-sm font-normal opacity-90 hover:opacity-100 transition-opacity"
+                title="Повторить заказ"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Повторить
+              </button>
+              <span>{formatPrice(order.total_amount)}</span>
+            </div>
           </div>
         </div>
       ))}
