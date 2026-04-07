@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -133,7 +133,7 @@ export default function PromoCodesPage() {
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={<Button className="bg-primary/100 hover:bg-primary/90"><Plus className="mr-2 h-4 w-4" />Новый промокод</Button>} />
+          <DialogTrigger render={<Button className="bg-primary hover:bg-primary/90"><Plus className="mr-2 h-4 w-4" />Новый промокод</Button>} />
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Новый промокод</DialogTitle>
@@ -215,7 +215,7 @@ export default function PromoCodesPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-primary/100 hover:bg-primary/90"
+                className="w-full bg-primary hover:bg-primary/90"
                 disabled={createPromo.isPending}
               >
                 {createPromo.isPending && (

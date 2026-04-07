@@ -187,8 +187,8 @@ export default function CheckoutPage({
       <h1 className="text-2xl font-bold">Оформление заказа</h1>
 
       {/* Cart summary */}
-      <div className="bg-white rounded-xl border p-4 space-y-2">
-        <h2 className="font-semibold">Ваш заказ</h2>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 shadow-sm">
+          <h2 className="font-semibold text-gray-900">Ваш заказ</h2>
         {items.map((item) => (
           <div key={item.product_id} className="flex justify-between text-sm">
             <span>
@@ -203,15 +203,15 @@ export default function CheckoutPage({
         {/* Промокод */}
         <div className="border-t pt-3 mt-2">
           {firstOrderDiscount > 0 && (
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-              <Gift className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-medium text-amber-700">
+              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 mb-3">
+                <Gift className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm font-medium text-emerald-700">
                 Скидка на первую покупку: −{formatPrice(firstOrderDiscount)}
               </span>
             </div>
           )}
           {appliedPromo ? (
-            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-green-600" />
                 <span className="text-sm font-medium text-green-700">
@@ -265,7 +265,7 @@ export default function CheckoutPage({
             </div>
           )}
           {firstOrderDiscount > 0 && (
-            <div className="flex justify-between text-sm text-amber-600">
+            <div className="flex justify-between text-sm text-emerald-600">
               <span>Скидка первой покупки</span>
               <span>−{formatPrice(firstOrderDiscount)}</span>
             </div>
@@ -285,8 +285,8 @@ export default function CheckoutPage({
 
       {/* Shipping */}
       {shippingMethods && shippingMethods.length > 0 && (
-        <div className="bg-white rounded-xl border p-6 space-y-3">
-          <h2 className="font-semibold flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3 shadow-sm">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
             <Truck className="h-5 w-5" /> Способ доставки
           </h2>
           {shippingMethods.map((method) => {
@@ -294,10 +294,10 @@ export default function CheckoutPage({
             return (
               <label
                 key={method.id}
-                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                   selectedShipping === method.id
-                    ? "border-amber-400 bg-amber-50"
-                    : "hover:bg-gray-50"
+                    ? "border-gray-900 bg-gray-50 shadow-sm"
+                    : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 <input
@@ -306,7 +306,7 @@ export default function CheckoutPage({
                   value={method.id}
                   checked={selectedShipping === method.id}
                   onChange={() => setSelectedShipping(method.id)}
-                  className="accent-amber-500"
+                  className="accent-gray-900"
                 />
                 <div className="flex-1">
                   <span className="font-medium text-sm">{method.name}</span>
@@ -328,10 +328,9 @@ export default function CheckoutPage({
       {/* Delivery form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white rounded-xl border p-6 space-y-4"
-      >
-        <h2 className="font-semibold">Данные доставки</h2>
-
+          className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-sm"
+        >
+          <h2 className="font-semibold text-gray-900">Данные доставки</h2>
         {savedAddresses && savedAddresses.length > 0 && (
           <div className="space-y-2">
             <Label>Сохранённые адреса</Label>
@@ -344,7 +343,7 @@ export default function CheckoutPage({
                     setValue("shipping_address", addr.address);
                     if (addr.phone) setValue("phone", addr.phone);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all"
                 >
                   <MapPin className="h-3.5 w-3.5 text-gray-400" />
                   {addr.label || "Адрес"}
@@ -395,7 +394,7 @@ export default function CheckoutPage({
         <Button
           type="submit"
           size="lg"
-          className="w-full text-white hover:opacity-90"
+            className="w-full text-white hover:opacity-90 h-12 rounded-xl text-base font-semibold shadow-md"
           style={{ backgroundColor: primaryColor }}
           disabled={createOrder.isPending}
         >

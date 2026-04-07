@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe } from "lucide-react";
@@ -275,7 +275,7 @@ export default function DesignPage() {
                 }`}
               >
                 {activePreset === preset.id && (
-                  <div className="absolute top-2 right-2 bg-primary/100 text-white rounded-full p-0.5">
+                  <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-0.5">
                     <Check className="h-3 w-3" />
                   </div>
                 )}
@@ -441,7 +441,7 @@ export default function DesignPage() {
 
         <Button
           onClick={handleSave}
-          className="w-full bg-primary/100 hover:bg-primary/90"
+          className="w-full bg-primary hover:bg-primary/90"
           disabled={updateSettings.isPending || uploading}
         >
           {(updateSettings.isPending || uploading) && (

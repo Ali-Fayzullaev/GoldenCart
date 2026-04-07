@@ -24,7 +24,7 @@ export default function ComparePage({
   if (items.length === 0) {
     return (
       <div className="text-center py-20">
-        <GitCompareArrows className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+        <GitCompareArrows className="h-12 w-12 text-gray-200 mx-auto mb-4" />
         <p className="text-gray-500 text-lg">Нет товаров для сравнения</p>
         <p className="text-gray-400 text-sm mt-1">
           Добавьте товары через каталог магазина

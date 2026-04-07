@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -239,7 +239,7 @@ export default function ProductsManagementPage() {
           }}
         >
           <DialogTrigger
-            render={<Button className="bg-primary/100 hover:bg-primary/90" />}
+            render={<Button className="bg-primary hover:bg-primary/90" />}
           >
             <Plus className="mr-2 h-4 w-4" />
             Добавить товар
@@ -306,7 +306,7 @@ export default function ProductsManagementPage() {
                   size="sm"
                   onClick={handleBulkApply}
                   disabled={bulkPending}
-                  className="bg-primary/100 hover:bg-primary/90"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {bulkPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Применить"}
                 </Button>
@@ -456,7 +456,7 @@ export default function ProductsManagementPage() {
               )}
             </div>
             {importFile && (
-              <Button onClick={handleImport} disabled={importing} className="w-full bg-primary/100 hover:bg-primary/90 text-white">
+              <Button onClick={handleImport} disabled={importing} className="w-full bg-primary hover:bg-primary/90 text-white">
                 {importing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Импорт...</> : <><Upload className="mr-2 h-4 w-4" />Импортировать</>}
               </Button>
             )}
@@ -797,7 +797,7 @@ function ProductForm({
 
       <Button
         type="submit"
-        className="w-full bg-primary/100 hover:bg-primary/90"
+        className="w-full bg-primary hover:bg-primary/90"
         disabled={isPending || uploading}
       >
         {(isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

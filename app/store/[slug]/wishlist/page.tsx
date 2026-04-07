@@ -28,7 +28,7 @@ export default function WishlistPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default function WishlistPage({
   if (!items?.length) {
     return (
       <div className="text-center py-20">
-        <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+        <Heart className="h-16 w-16 text-gray-200 mx-auto mb-4" />
         <h2 className="text-xl font-bold mb-2">Избранное пусто</h2>
         <p className="text-gray-500 mb-4">Добавляйте товары, нажимая на ❤️</p>
         <Link href={`/store/${slug}`}>
@@ -56,7 +56,7 @@ export default function WishlistPage({
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-xl border p-4 flex items-center gap-4"
+            className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-4"
           >
             <Link href={`/store/${slug}/product/${item.products.id}`}>
               {item.products.images?.[0] ? (
@@ -66,7 +66,7 @@ export default function WishlistPage({
                   className="h-20 w-20 rounded-lg object-cover"
                 />
               ) : (
-                <div className="h-20 w-20 rounded-lg bg-gray-100 flex items-center justify-center">
+                <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
                   <ShoppingCart className="h-6 w-6 text-gray-300" />
                 </div>
               )}

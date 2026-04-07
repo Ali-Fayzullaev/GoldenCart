@@ -19,7 +19,7 @@ export default function StoreBlogPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
       </div>
     );
   }
@@ -32,7 +32,7 @@ export default function StoreBlogPage({
 
       {!posts?.length ? (
         <div className="text-center py-20">
-          <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <BookOpen className="h-12 w-12 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-500">Пока нет статей</p>
         </div>
       ) : (
@@ -41,7 +41,7 @@ export default function StoreBlogPage({
             <Link
               key={post.id}
               href={`/store/${slug}/blog/${post.slug}`}
-              className="group rounded-xl border overflow-hidden bg-white hover:shadow-md transition-shadow"
+              className="group rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow"
             >
               {post.cover_image ? (
                 <img
@@ -50,12 +50,12 @@ export default function StoreBlogPage({
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+                <div className="w-full h-48 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
                   <ImageIcon className="h-10 w-10 text-gray-300" />
                 </div>
               )}
               <div className="p-4">
-                <h2 className="font-semibold text-lg line-clamp-2 group-hover:text-amber-600 transition-colors">
+                <h2 className="font-semibold text-lg line-clamp-2 group-hover:text-gray-700 transition-colors">
                   {post.title}
                 </h2>
                 <p className="text-xs text-gray-400 mt-2">

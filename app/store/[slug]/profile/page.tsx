@@ -141,7 +141,7 @@ export default function ProfilePage({
   if (profileLoading || addressesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
       </div>
     );
   }
@@ -149,7 +149,7 @@ export default function ProfilePage({
   if (!profile) {
     return (
       <div className="text-center py-20">
-        <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+        <User className="h-16 w-16 text-gray-200 mx-auto mb-4" />
         <h2 className="text-xl font-bold mb-2">Войдите в аккаунт</h2>
         <p className="text-gray-500">Для просмотра профиля необходимо авторизоваться</p>
       </div>
@@ -161,11 +161,11 @@ export default function ProfilePage({
       <h1 className="text-2xl font-bold">Мой профиль</h1>
 
       {/* Profile info */}
-      <div className="bg-white rounded-xl border p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="relative group">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -219,7 +219,7 @@ export default function ProfilePage({
       </div>
 
       {/* Saved addresses */}
-      <div className="bg-white rounded-xl border p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -324,7 +324,7 @@ export default function ProfilePage({
                   {!addr.is_default && (
                     <button
                       onClick={() => handleSetDefault(addr.id)}
-                      className="p-1.5 text-gray-400 hover:text-amber-500 transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
                       title="Сделать основным"
                     >
                       <Star className="h-4 w-4" />

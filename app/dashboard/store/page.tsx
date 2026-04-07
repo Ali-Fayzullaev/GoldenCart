@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -142,7 +142,7 @@ export default function StoreManagementPage() {
 
         <Button
           type="submit"
-          className="w-full bg-primary/100 hover:bg-primary/90"
+          className="w-full bg-primary hover:bg-primary/90"
           disabled={isPending}
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -410,7 +410,7 @@ function FirstOrderDiscountSettings({
       <Button
         type="button"
         onClick={handleSave}
-        className="w-full bg-primary/100 hover:bg-primary/90"
+        className="w-full bg-primary hover:bg-primary/90"
         disabled={updateStore.isPending}
       >
         {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -470,7 +470,7 @@ function LowStockThresholdSettings({
       <Button
         type="button"
         onClick={handleSave}
-        className="w-full bg-primary/100 hover:bg-primary/90"
+        className="w-full bg-primary hover:bg-primary/90"
         disabled={updateStore.isPending}
       >
         {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

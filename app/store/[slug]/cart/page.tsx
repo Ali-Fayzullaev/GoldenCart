@@ -52,11 +52,11 @@ export default function CartPage({
   if (!items.length) {
     return (
       <div className="text-center py-20">
-        <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h2 className="text-xl font-bold mb-2">Корзина пуста</h2>
-        <p className="text-gray-500 mb-4">Добавьте товары из каталога</p>
+        <ShoppingBag className="h-16 w-16 text-gray-200 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Корзина пуста</h2>
+        <p className="text-gray-400 text-sm mb-6">Добавьте товары из каталога</p>
         <Link href={`/store/${slug}`}>
-          <Button style={{ backgroundColor: primaryColor }} className="text-white">
+          <Button style={{ backgroundColor: primaryColor }} className="text-white rounded-xl shadow-md hover:opacity-90">
             Перейти в каталог
           </Button>
         </Link>
@@ -66,23 +66,23 @@ export default function CartPage({
 
   return (
     <div className="max-w-2xl mx-auto py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Корзина</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Корзина</h1>
 
       <div className="space-y-3">
         {items.map((item) => (
           <div
             key={item.product_id}
-            className="flex items-center gap-4 bg-white rounded-xl border p-4"
+            className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow"
           >
             {item.image ? (
               <img
                 src={item.image}
                 alt={item.name}
-                className="h-16 w-16 rounded object-cover"
+                className="h-16 w-16 rounded-xl object-cover"
               />
             ) : (
-              <div className="h-16 w-16 rounded bg-gray-100 flex items-center justify-center">
-                <ShoppingBag className="h-6 w-6 text-gray-300" />
+              <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                <ShoppingBag className="h-6 w-6 text-gray-200" />
               </div>
             )}
 
@@ -93,21 +93,17 @@ export default function CartPage({
               </p>
             </div>
 
-            <div className="flex items-center border rounded-lg">
+            <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
               <button
-                onClick={() =>
-                  handleQuantity(item.product_id, item.quantity - 1)
-                }
-                className="p-1.5 hover:bg-gray-50"
+                onClick={() => handleQuantity(item.product_id, item.quantity - 1)}
+                className="p-2 hover:bg-gray-50 transition-colors"
               >
                 <Minus className="h-3 w-3" />
               </button>
               <span className="px-3 text-sm font-medium">{item.quantity}</span>
               <button
-                onClick={() =>
-                  handleQuantity(item.product_id, item.quantity + 1)
-                }
-                className="p-1.5 hover:bg-gray-50"
+                onClick={() => handleQuantity(item.product_id, item.quantity + 1)}
+                className="p-2 hover:bg-gray-50 transition-colors"
               >
                 <Plus className="h-3 w-3" />
               </button>
@@ -128,8 +124,8 @@ export default function CartPage({
       </div>
 
       {/* Total */}
-      <div className="bg-white rounded-xl border p-4 flex items-center justify-between">
-        <span className="text-lg font-semibold">Итого:</span>
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between shadow-sm">
+        <span className="text-lg font-semibold text-gray-900">Итого:</span>
         <span className="text-2xl font-bold" style={{ color: primaryColor }}>
           {formatPrice(total)}
         </span>
@@ -138,7 +134,7 @@ export default function CartPage({
       <Link href={`/store/${slug}/checkout`} className="block">
         <Button
           size="lg"
-          className="w-full text-white hover:opacity-90"
+          className="w-full text-white hover:opacity-90 rounded-xl h-12 text-base font-semibold shadow-md"
           style={{ backgroundColor: primaryColor }}
         >
           Оформить заказ

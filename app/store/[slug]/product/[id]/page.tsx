@@ -90,7 +90,7 @@ export default function ProductDetailPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
       </div>
     );
   }
@@ -98,7 +98,9 @@ export default function ProductDetailPage({
   if (!product) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Товар не найден</p>
+        <ShoppingBag className="h-16 w-16 text-gray-200 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Товар не найден</h3>
+        <p className="text-gray-400 text-sm">Возможно, он был удалён или скрыт</p>
       </div>
     );
   }
@@ -141,24 +143,26 @@ export default function ProductDetailPage({
 
   return (
     <div className="max-w-5xl mx-auto py-6">
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-10">
         {/* Images */}
         <div className="space-y-3">
           {product.images.length > 0 ? (
             <>
-              <img
-                src={product.images[selectedImage]}
-                alt={product.name}
-                className="w-full aspect-square object-cover rounded-xl"
-              />
+              <div className="rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100">
+                <img
+                  src={product.images[selectedImage]}
+                  alt={product.name}
+                  className="w-full aspect-square object-cover"
+                />
+              </div>
               {product.images.length > 1 && (
-                <div className="flex gap-2">
+                <div className="flex gap-2.5">
                   {product.images.map((img, i) => (
                     <button
                       key={i}
                       onClick={() => setSelectedImage(i)}
-                      className={`h-16 w-16 rounded border-2 overflow-hidden ${
-                        i === selectedImage ? "border-current" : "border-transparent"
+                      className={`h-18 w-18 rounded-xl border-2 overflow-hidden transition-all ${
+                        i === selectedImage ? "ring-2 ring-offset-2 shadow-md" : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                       style={i === selectedImage ? { borderColor: primaryColor } : {}}
                     >
@@ -169,26 +173,33 @@ export default function ProductDetailPage({
               )}
             </>
           ) : (
-            <div className="w-full aspect-square bg-gray-100 rounded-xl flex items-center justify-center">
-              <ShoppingBag className="h-20 w-20 text-gray-300" />
+            <div className="w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center">
+              <ShoppingBag className="h-20 w-20 text-gray-200" />
             </div>
           )}
         </div>
 
         {/* Info */}
-        <div className="space-y-4">
-          <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="text-3xl font-bold" style={{ color: primaryColor }}>
-            {formatPrice(product.price)}
-          </p>
+        <div className="space-y-5">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+            <p className="text-3xl font-bold mt-2" style={{ color: primaryColor }}>
+              {formatPrice(product.price)}
+            </p>
+          </div>
 
           {product.stock > 0 ? (
-            <p className="text-sm text-green-600">В наличии: {product.stock} шт.</p>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              В наличии: {product.stock} шт.
+            </span>
           ) : (
-            <p className="text-sm text-red-500">Нет в наличии</p>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-sm font-medium">
+              Нет в наличии
+            </span>
           )}
 
-          <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
+          <p className="text-gray-500 leading-relaxed whitespace-pre-line">{product.description}</p>
 
           {/* Варианты товара */}
           {product.variants && product.variants.length > 0 && (
@@ -205,8 +216,7 @@ export default function ProductDetailPage({
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {variant.values.map((val) => {
-                      const isSelected =
-                        selectedVariants[variant.name] === val;
+                      const isSelected = selectedVariants[variant.name] === val;
                       return (
                         <button
                           key={val}
@@ -216,16 +226,12 @@ export default function ProductDetailPage({
                               [variant.name]: val,
                             }))
                           }
-                          className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+                          className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
                             isSelected
-                              ? "text-white border-transparent"
-                              : "hover:border-gray-400"
+                              ? "text-white border-transparent shadow-md"
+                              : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
                           }`}
-                          style={
-                            isSelected
-                              ? { backgroundColor: primaryColor }
-                              : {}
-                          }
+                          style={isSelected ? { backgroundColor: primaryColor } : {}}
                         >
                           {val}
                         </button>
@@ -263,20 +269,18 @@ export default function ProductDetailPage({
           )}
 
           {product.stock > 0 && (
-            <div className="flex items-center gap-4 pt-4">
-              <div className="flex items-center border rounded-lg">
+            <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-2 hover:bg-gray-50"
+                  className="p-3 hover:bg-gray-50 transition-colors"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="px-4 font-medium">{quantity}</span>
+                <span className="px-5 font-semibold">{quantity}</span>
                 <button
-                  onClick={() =>
-                    setQuantity(Math.min(product.stock, quantity + 1))
-                  }
-                  className="p-2 hover:bg-gray-50"
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  className="p-3 hover:bg-gray-50 transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -286,7 +290,7 @@ export default function ProductDetailPage({
                 onClick={handleAdd}
                 size="lg"
                 style={{ backgroundColor: primaryColor }}
-                className="text-white hover:opacity-90 flex-1"
+                className="text-white hover:opacity-90 flex-1 h-12 rounded-xl text-base font-semibold shadow-md"
               >
                 В корзину — {formatPrice(product.price * quantity)}
               </Button>
@@ -296,11 +300,11 @@ export default function ProductDetailPage({
       </div>
 
       {/* Отзывы */}
-      <div className="mt-10 border-t pt-8">
-        <h2 className="text-2xl font-bold mb-6">
+      <div className="mt-12 border-t border-gray-100 pt-10">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Отзывы{" "}
           {reviews && reviews.length > 0 && (
-            <span className="text-gray-400 text-lg font-normal">
+            <span className="text-gray-300 text-lg font-normal">
               ({reviews.length})
             </span>
           )}
@@ -308,8 +312,8 @@ export default function ProductDetailPage({
 
         {/* Форма отзыва */}
         {profile?.role === "customer" && (
-          <div className="border rounded-xl p-4 mb-6 space-y-3">
-            <p className="font-medium">Оставьте отзыв</p>
+          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-8 space-y-4 shadow-sm">
+            <p className="font-semibold text-gray-900">Оставьте отзыв</p>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button
@@ -335,7 +339,7 @@ export default function ProductDetailPage({
               onChange={(e) => setReviewComment(e.target.value)}
               placeholder="Напишите ваш отзыв..."
               rows={3}
-              className="w-full border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-300 transition-shadow"
             />
             <Button
               onClick={handleSubmitReview}
@@ -350,7 +354,7 @@ export default function ProductDetailPage({
 
         {/* Список отзывов */}
         {!reviews || reviews.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">
+          <p className="text-gray-400 text-center py-10">
             Пока нет отзывов. Будьте первым!
           </p>
         ) : (
@@ -358,7 +362,7 @@ export default function ProductDetailPage({
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="border rounded-xl p-4 space-y-2"
+                className="bg-white border border-gray-100 rounded-2xl p-5 space-y-2.5 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -397,7 +401,7 @@ export default function ProductDetailPage({
                     )}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600">{review.comment}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{review.comment}</p>
               </div>
             ))}
           </div>

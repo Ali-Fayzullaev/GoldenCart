@@ -20,7 +20,7 @@ export default function BlogPostPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
       </div>
     );
   }
@@ -28,7 +28,7 @@ export default function BlogPostPage({
   if (!post) {
     return (
       <div className="text-center py-20">
-        <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+        <BookOpen className="h-12 w-12 text-gray-200 mx-auto mb-3" />
         <p className="text-gray-500">Статья не найдена</p>
       </div>
     );

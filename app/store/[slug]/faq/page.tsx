@@ -18,7 +18,7 @@ export default function StoreFaqPage({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
       </div>
     );
   }
@@ -31,7 +31,7 @@ export default function StoreFaqPage({
 
       {!faqs?.length ? (
         <div className="text-center py-20">
-          <HelpCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <HelpCircle className="h-12 w-12 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-500">Пока нет вопросов</p>
         </div>
       ) : (
@@ -49,7 +49,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl border overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
