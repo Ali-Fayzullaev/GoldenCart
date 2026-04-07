@@ -85,6 +85,7 @@ export default function PromoCodesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Удалить? Это действие нельзя отменить.")) return;
     try {
       await deletePromo.mutateAsync(id);
       toast.success("Промокод удалён");

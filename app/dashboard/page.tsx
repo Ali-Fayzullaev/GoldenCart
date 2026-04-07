@@ -15,6 +15,15 @@ import {
   Tag,
   AlertTriangle,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { useMyStore } from "@/lib/hooks/use-stores";
 import { useStoreProducts } from "@/lib/hooks/use-products";
 import { useSellerOrders } from "@/lib/hooks/use-orders";
@@ -329,31 +338,50 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Bar chart */}
-            <div className="flex items-end gap-2 h-40">
-              {analytics.dailyRevenue.map((day, i) => {
-                const maxAmount = Math.max(
-                  ...analytics.dailyRevenue.map((d) => d.amount),
-                  1
-                );
-                const height = Math.max((day.amount / maxAmount) * 100, 4);
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs text-muted-foreground font-medium">
-                      {day.amount > 0 ? formatPrice(day.amount) : ""}
-                    </span>
-                    <div
-                      className="w-full rounded-t-md bg-primary/80 hover:bg-primary transition-colors cursor-default relative group"
-                      style={{ height: `${height}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        {day.orders} заказ(ов)
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{day.date}</span>
-                  </div>
-                );
-              })}
+            {/* Area chart */}
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={analytics.dailyRevenue} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}к` : String(v)}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--color-popover)",
+                      borderColor: "var(--color-border)",
+                      borderRadius: "0.5rem",
+                      fontSize: "0.75rem",
+                    }}
+                    formatter={(value) => [formatPrice(Number(value)), "Выручка"]}
+                    labelFormatter={(label) => String(label)}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="var(--color-primary)"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
 

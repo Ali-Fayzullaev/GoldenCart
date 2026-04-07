@@ -38,7 +38,7 @@ export default function WishlistPage({
       <div className="text-center py-20">
         <Heart className="h-16 w-16 text-gray-200 mx-auto mb-4" />
         <h2 className="text-xl font-bold mb-2">Избранное пусто</h2>
-        <p className="text-gray-500 mb-4">Добавляйте товары, нажимая на ❤️</p>
+        <p className="s-muted mb-4">Добавляйте товары, нажимая на ❤️</p>
         <Link href={`/store/${slug}`}>
           <Button style={{ backgroundColor: primaryColor }} className="text-white">
             К покупкам
@@ -50,13 +50,41 @@ export default function WishlistPage({
 
   return (
     <div className="max-w-3xl mx-auto py-6 space-y-4">
-      <h1 className="text-2xl font-bold">Избранное ({items.length})</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Избранное ({items.length})</h1>
+        {items.some((item) => item.products.stock > 0) && (
+          <Button
+            size="sm"
+            style={{ backgroundColor: primaryColor }}
+            className="text-white hover:opacity-90"
+            onClick={() => {
+              let count = 0;
+              for (const item of items) {
+                if (item.products.stock > 0) {
+                  addItem({
+                    product_id: item.products.id,
+                    store_id: item.store_id,
+                    name: item.products.name,
+                    price: item.products.price,
+                    image: item.products.images?.[0] || null,
+                  });
+                  count++;
+                }
+              }
+              toast.success(`${count} товар(ов) добавлено в корзину`);
+            }}
+          >
+            <ShoppingCart className="h-4 w-4 mr-1.5" />
+            Всё в корзину
+          </Button>
+        )}
+      </div>
 
       <div className="space-y-3">
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-4"
+            className="s-card rounded-2xl border s-border p-5 shadow-sm flex items-center gap-4"
           >
             <Link href={`/store/${slug}/product/${item.products.id}`}>
               {item.products.images?.[0] ? (

@@ -99,7 +99,7 @@ export default function ProductDetailPage({
     return (
       <div className="text-center py-20">
         <ShoppingBag className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Товар не найден</h3>
+        <h3 className="text-lg font-semibold s-text mb-1">Товар не найден</h3>
         <p className="text-gray-400 text-sm">Возможно, он был удалён или скрыт</p>
       </div>
     );
@@ -148,7 +148,7 @@ export default function ProductDetailPage({
         <div className="space-y-3">
           {product.images.length > 0 ? (
             <>
-              <div className="rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100">
+              <div className="rounded-2xl overflow-hidden s-card shadow-sm border s-border">
                 <img
                   src={product.images[selectedImage]}
                   alt={product.name}
@@ -166,7 +166,7 @@ export default function ProductDetailPage({
                       }`}
                       style={i === selectedImage ? { borderColor: primaryColor } : {}}
                     >
-                      <img src={img} alt="" className="h-full w-full object-cover" />
+                      <img src={img} alt={`${product.name} — фото ${i + 1}`} className="h-full w-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -182,7 +182,7 @@ export default function ProductDetailPage({
         {/* Info */}
         <div className="space-y-5">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+            <h1 className="text-3xl font-bold s-text">{product.name}</h1>
             <p className="text-3xl font-bold mt-2" style={{ color: primaryColor }}>
               {formatPrice(product.price)}
             </p>
@@ -229,7 +229,7 @@ export default function ProductDetailPage({
                           className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${
                             isSelected
                               ? "text-white border-transparent shadow-md"
-                              : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                              : "border-gray-200 hover:border-gray-400 s-hover"
                           }`}
                           style={isSelected ? { backgroundColor: primaryColor } : {}}
                         >
@@ -273,14 +273,16 @@ export default function ProductDetailPage({
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3 hover:bg-gray-50 transition-colors"
+                  aria-label="Уменьшить количество"
+                  className="p-3 s-hover transition-colors"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
                 <span className="px-5 font-semibold">{quantity}</span>
                 <button
                   onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  className="p-3 hover:bg-gray-50 transition-colors"
+                  aria-label="Увеличить количество"
+                  className="p-3 s-hover transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -300,8 +302,8 @@ export default function ProductDetailPage({
       </div>
 
       {/* Отзывы */}
-      <div className="mt-12 border-t border-gray-100 pt-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <div className="mt-12 border-t s-border pt-10">
+        <h2 className="text-2xl font-bold s-text mb-6">
           Отзывы{" "}
           {reviews && reviews.length > 0 && (
             <span className="text-gray-300 text-lg font-normal">
@@ -312,8 +314,8 @@ export default function ProductDetailPage({
 
         {/* Форма отзыва */}
         {profile?.role === "customer" && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-8 space-y-4 shadow-sm">
-            <p className="font-semibold text-gray-900">Оставьте отзыв</p>
+          <div className="s-card border s-border rounded-2xl p-5 mb-8 space-y-4 shadow-sm">
+            <p className="font-semibold s-text">Оставьте отзыв</p>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button
@@ -362,7 +364,7 @@ export default function ProductDetailPage({
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="bg-white border border-gray-100 rounded-2xl p-5 space-y-2.5 shadow-sm"
+                className="s-card border s-border rounded-2xl p-5 space-y-2.5 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

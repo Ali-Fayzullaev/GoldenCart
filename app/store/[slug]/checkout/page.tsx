@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Tag, Check, X, Gift, Truck, MapPin } from "lucide-react";
+import { Loader2, Tag, Check, X, Gift, Truck, MapPin, ShoppingCart, ShoppingBag, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -176,8 +176,17 @@ export default function CheckoutPage({
 
   if (!items.length) {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-500">Корзина пуста</p>
+      <div className="text-center py-20 space-y-4">
+        <ShoppingBag className="h-16 w-16 text-gray-200 mx-auto" />
+        <h2 className="text-xl font-bold s-text">Корзина пуста</h2>
+        <p className="s-muted text-sm">Добавьте товары, чтобы оформить заказ</p>
+        <a
+          href={`/store/${slug}`}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: primaryColor }}
+        >
+          ← Перейти в каталог
+        </a>
       </div>
     );
   }
@@ -186,21 +195,61 @@ export default function CheckoutPage({
     <div className="max-w-2xl mx-auto py-6 space-y-6">
       <h1 className="text-2xl font-bold">Оформление заказа</h1>
 
-      {/* Cart summary */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-3 shadow-sm">
-          <h2 className="font-semibold text-gray-900">Ваш заказ</h2>
-        {items.map((item) => (
-          <div key={item.product_id} className="flex justify-between text-sm">
-            <span>
-              {item.name} × {item.quantity}
-            </span>
-            <span className="font-medium">
-              {formatPrice(item.price * item.quantity)}
-            </span>
-          </div>
-        ))}
+        {/* Stepper */}
+        <div className="flex items-center justify-center gap-0">
+          {[
+            { icon: ShoppingCart, label: "Корзина", done: true },
+            { icon: Truck, label: "Доставка", done: false, current: true },
+            { icon: CreditCard, label: "Оплата", done: false },
+          ].map((step, i, arr) => (
+            <div key={i} className="flex items-center">
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                    step.done
+                      ? "text-white"
+                      : step.current
+                        ? "text-white ring-2 ring-offset-2"
+                        : "bg-gray-200 s-muted"
+                  }`}
+                  style={step.done || step.current ? { backgroundColor: primaryColor } : {}}
+                >
+                  {step.done ? <Check className="h-4 w-4" /> : <step.icon className="h-4 w-4" />}
+                </div>
+                <span className={`text-xs mt-1 ${step.done || step.current ? "font-medium" : "s-muted"}`}>
+                  {step.label}
+                </span>
+              </div>
+              {i < arr.length - 1 && (
+                <div className={`w-16 h-0.5 mx-2 mt-[-18px] ${step.done ? "" : "bg-gray-200"}`} style={step.done ? { backgroundColor: primaryColor } : {}} />
+              )}
+            </div>
+          ))}
+        </div>
 
-        {/* Промокод */}
+        {/* Cart summary */}
+          <div className="s-card rounded-2xl border s-border p-5 space-y-3 shadow-sm">
+            <h2 className="font-semibold s-text">Ваш заказ</h2>
+          {items.map((item) => (
+            <div key={item.product_id} className="flex items-center gap-3 text-sm">
+              {item.image ? (
+                <img src={item.image} alt={item.name} className="h-12 w-12 rounded-lg object-cover shrink-0" />
+              ) : (
+                <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                  <ShoppingCart className="h-4 w-4 text-gray-300" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="block truncate">{item.name}</span>
+                <span className="s-muted">× {item.quantity}</span>
+              </div>
+              <span className="font-medium shrink-0">
+                {formatPrice(item.price * item.quantity)}
+              </span>
+            </div>
+          ))}
+
+          {/* Промокод */}
         <div className="border-t pt-3 mt-2">
           {firstOrderDiscount > 0 && (
               <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 mb-3">
@@ -221,14 +270,14 @@ export default function CheckoutPage({
                   −{formatPrice(discount)}
                 </span>
               </div>
-              <button onClick={handleRemovePromo} className="text-gray-400 hover:text-red-500">
+              <button onClick={handleRemovePromo} className="s-muted hover:text-red-500">
                 <X className="h-4 w-4" />
               </button>
             </div>
           ) : (
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 s-muted" />
                 <Input
                   placeholder="Промокод"
                   value={promoInput}
@@ -254,7 +303,7 @@ export default function CheckoutPage({
         </div>
 
         <div className="border-t pt-2 space-y-1">
-          <div className="flex justify-between text-sm text-gray-500">
+          <div className="flex justify-between text-sm s-muted">
             <span>Подитог</span>
             <span>{formatPrice(total)}</span>
           </div>
@@ -271,7 +320,7 @@ export default function CheckoutPage({
             </div>
           )}
           {shippingCost > 0 && (
-            <div className="flex justify-between text-sm text-gray-500">
+            <div className="flex justify-between text-sm s-muted">
               <span>Доставка</span>
               <span>+{formatPrice(shippingCost)}</span>
             </div>
@@ -285,8 +334,8 @@ export default function CheckoutPage({
 
       {/* Shipping */}
       {shippingMethods && shippingMethods.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3 shadow-sm">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <div className="s-card rounded-2xl border s-border p-6 space-y-3 shadow-sm">
+            <h2 className="font-semibold s-text flex items-center gap-2">
             <Truck className="h-5 w-5" /> Способ доставки
           </h2>
           {shippingMethods.map((method) => {
@@ -297,7 +346,7 @@ export default function CheckoutPage({
                 className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                   selectedShipping === method.id
                     ? "border-gray-900 bg-gray-50 shadow-sm"
-                    : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                    : "s-border hover:border-gray-200 s-hover"
                 }`}
               >
                 <input
@@ -311,7 +360,7 @@ export default function CheckoutPage({
                 <div className="flex-1">
                   <span className="font-medium text-sm">{method.name}</span>
                   {method.min_order_free && (
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs s-muted">
                       Бесплатно от {formatPrice(method.min_order_free)}
                     </p>
                   )}
@@ -328,9 +377,9 @@ export default function CheckoutPage({
       {/* Delivery form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-          className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-sm"
+          className="s-card rounded-2xl border s-border p-6 space-y-4 shadow-sm"
         >
-          <h2 className="font-semibold text-gray-900">Данные доставки</h2>
+          <h2 className="font-semibold s-text">Данные доставки</h2>
         {savedAddresses && savedAddresses.length > 0 && (
           <div className="space-y-2">
             <Label>Сохранённые адреса</Label>
@@ -343,9 +392,9 @@ export default function CheckoutPage({
                     setValue("shipping_address", addr.address);
                     if (addr.phone) setValue("phone", addr.phone);
                   }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border s-border rounded-xl s-hover hover:border-gray-300 transition-all"
                 >
-                  <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                  <MapPin className="h-3.5 w-3.5 s-muted" />
                   {addr.label || "Адрес"}
                   {addr.is_default && (
                     <span className="text-xs px-1 py-0.5 rounded text-white" style={{ backgroundColor: primaryColor }}>★</span>

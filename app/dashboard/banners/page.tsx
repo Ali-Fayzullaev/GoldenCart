@@ -96,6 +96,7 @@ export default function BannersPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Удалить? Это действие нельзя отменить.")) return;
     try {
       await deleteBanner.mutateAsync(id);
       toast.success("Баннер удалён");

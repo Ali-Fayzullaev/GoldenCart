@@ -88,7 +88,7 @@ export default function StoreRegisterPage({
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-6 rounded-xl shadow-sm border space-y-4"
+        className="s-card p-6 rounded-xl shadow-sm border space-y-4"
       >
         <div className="space-y-2">
           <Label htmlFor="full_name">Ваше имя</Label>

@@ -48,6 +48,7 @@ export default function ShippingPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Удалить? Это действие нельзя отменить.")) return;
     try {
       await deleteMethod.mutateAsync(id);
       toast.success("Удалено");

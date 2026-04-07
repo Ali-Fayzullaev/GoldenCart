@@ -32,7 +32,7 @@ export default function StoreFaqPage({
       {!faqs?.length ? (
         <div className="text-center py-20">
           <HelpCircle className="h-12 w-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-500">Пока нет вопросов</p>
+          <p className="s-muted">Пока нет вопросов</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -49,14 +49,14 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="s-card rounded-2xl border s-border shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between p-4 text-left s-hover transition-colors"
       >
         <span className="font-medium pr-4">{question}</span>
         <ChevronDown
-          className={`h-5 w-5 text-gray-400 shrink-0 transition-transform ${
+          className={`h-5 w-5 s-muted shrink-0 transition-transform ${
             open ? "rotate-180" : ""
           }`}
         />

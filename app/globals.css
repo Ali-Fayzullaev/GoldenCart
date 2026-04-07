@@ -126,5 +126,25 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  ::selection {
+    background: oklch(0.55 0.22 265 / 0.2);
+    color: oklch(0.16 0.02 260);
+  }
+  .dark ::selection {
+    background: oklch(0.65 0.22 265 / 0.3);
+    color: oklch(0.94 0.005 260);
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
   }
 }
+
+/* Store theme utility classes — driven by CSS custom properties set in store layout */
+.s-card { background: var(--store-card, #fff); }
+.s-text { color: var(--store-card-foreground, #111827); }
+.s-muted { color: var(--store-muted, #6b7280); }
+.s-border { border-color: var(--store-border, rgba(0,0,0,0.06)); }
+.s-hover:hover { background: var(--store-hover, rgba(0,0,0,0.02)); }
+.s-input { background: var(--store-input-bg, #fff); }

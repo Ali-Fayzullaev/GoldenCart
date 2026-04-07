@@ -96,6 +96,7 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Удалить? Это действие нельзя отменить.")) return;
     try {
       await deleteCategory.mutateAsync(id);
       toast.success("Категория удалена");

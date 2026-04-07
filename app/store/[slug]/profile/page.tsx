@@ -151,7 +151,7 @@ export default function ProfilePage({
       <div className="text-center py-20">
         <User className="h-16 w-16 text-gray-200 mx-auto mb-4" />
         <h2 className="text-xl font-bold mb-2">Войдите в аккаунт</h2>
-        <p className="text-gray-500">Для просмотра профиля необходимо авторизоваться</p>
+        <p className="s-muted">Для просмотра профиля необходимо авторизоваться</p>
       </div>
     );
   }
@@ -161,7 +161,7 @@ export default function ProfilePage({
       <h1 className="text-2xl font-bold">Мой профиль</h1>
 
       {/* Profile info */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+      <div className="s-card rounded-2xl border s-border p-6 shadow-sm">
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="relative group">
@@ -169,7 +169,7 @@ export default function ProfilePage({
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <User className="h-10 w-10 text-gray-400" />
+                <User className="h-10 w-10 s-muted" />
               )}
             </div>
             <button
@@ -211,7 +211,7 @@ export default function ProfilePage({
               </div>
             </div>
             <div>
-              <Label className="text-gray-500">Email</Label>
+              <Label className="s-muted">Email</Label>
               <p className="text-sm mt-1">{profile.email}</p>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function ProfilePage({
       </div>
 
       {/* Saved addresses */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+      <div className="s-card rounded-2xl border s-border p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -239,7 +239,7 @@ export default function ProfilePage({
 
         {/* Address form */}
         {showAddForm && (
-          <div className="border rounded-lg p-4 mb-4 space-y-3 bg-gray-50">
+          <div className="border rounded-lg p-4 mb-4 space-y-3 s-card">
             <div>
               <Label>Название</Label>
               <Input
@@ -298,7 +298,7 @@ export default function ProfilePage({
 
         {/* Address list */}
         {!addresses?.length && !showAddForm ? (
-          <p className="text-sm text-gray-500">Нет сохранённых адресов</p>
+          <p className="text-sm s-muted">Нет сохранённых адресов</p>
         ) : (
           <div className="space-y-2">
             {addresses?.map((addr) => (
@@ -317,14 +317,14 @@ export default function ProfilePage({
                   </div>
                   <p className="text-sm text-gray-600 mt-0.5">{addr.address}</p>
                   {addr.phone && (
-                    <p className="text-xs text-gray-400 mt-0.5">{addr.phone}</p>
+                    <p className="text-xs s-muted mt-0.5">{addr.phone}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1 ml-2 shrink-0">
                   {!addr.is_default && (
                     <button
                       onClick={() => handleSetDefault(addr.id)}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+                      className="p-1.5 s-muted hover:text-gray-700 transition-colors"
                       title="Сделать основным"
                     >
                       <Star className="h-4 w-4" />
@@ -332,13 +332,13 @@ export default function ProfilePage({
                   )}
                   <button
                     onClick={() => openEditAddress(addr)}
-                    className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
+                    className="p-1.5 s-muted hover:text-blue-500 transition-colors"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteAddress(addr.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 s-muted hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

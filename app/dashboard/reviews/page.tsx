@@ -38,6 +38,7 @@ export default function ReviewsModerationPage() {
   };
 
   const handleDelete = (id: string, productId: string) => {
+    if (!confirm("Удалить? Это действие нельзя отменить.")) return;
     deleteReview.mutate({ id, productId, storeId: store!.id });
     toast.success("Отзыв удалён");
   };

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ShoppingBag,
   ShoppingCart,
@@ -13,6 +13,8 @@ import {
   Heart,
   Home,
   ClipboardList,
+  Search,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
@@ -71,6 +73,7 @@ function StoreShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const settings = store.store_settings;
   const { data: profile } = useProfile();
   const supabase = createClient();
@@ -78,6 +81,8 @@ function StoreShell({
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState("");
   const { data: cmsPages } = usePublicStorePages(store.id);
   const { data: blogPosts } = usePublicBlogPosts(store.id);
 
@@ -113,6 +118,16 @@ function StoreShell({
     window.location.reload();
   };
 
+  const handleHeaderSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!headerSearch.trim()) return;
+    // Navigate to store page — the page reads the search query from URL
+    const sp = new URLSearchParams({ q: headerSearch.trim() });
+    router.push(`${baseUrl}?${sp.toString()}`);
+    setSearchOpen(false);
+    setHeaderSearch("");
+  };
+
   const tabItems = [
     { href: baseUrl, icon: Home, label: "Главная", match: (p: string) => p === baseUrl },
     { href: `${baseUrl}/wishlist`, icon: Heart, label: "Избранное", match: (p: string) => p.includes("/wishlist") },
@@ -121,8 +136,32 @@ function StoreShell({
     { href: `${baseUrl}/profile`, icon: User, label: "Профиль", match: (p: string) => p.includes("/profile") },
   ];
 
+  // Derive card/muted colors from background
+  const isStoreDark = (() => {
+    // Simple luminance check from hex
+    const hex = bgColor.replace("#", "");
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 < 128;
+  })();
+
+  const storeVars = {
+    "--store-bg": bgColor,
+    "--store-text": textColor,
+    "--store-card": isStoreDark ? "rgba(255,255,255,0.08)" : "#ffffff",
+    "--store-card-foreground": textColor,
+    "--store-muted": isStoreDark ? "rgba(255,255,255,0.5)" : "#6b7280",
+    "--store-border": isStoreDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.06)",
+    "--store-hover": isStoreDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+    "--store-input-bg": isStoreDark ? "rgba(255,255,255,0.1)" : "#ffffff",
+  } as React.CSSProperties;
+
   return (
-    <div style={{ backgroundColor: bgColor, color: textColor, fontFamily: font }} className="min-h-screen flex flex-col">
+    <div
+      style={{ backgroundColor: bgColor, color: textColor, fontFamily: font, ...storeVars }}
+      className="min-h-screen flex flex-col"
+    >
       {/* Banner */}
       {settings?.banner_url && (
         <div className="relative">
@@ -146,7 +185,7 @@ function StoreShell({
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href={baseUrl} className="flex items-center gap-2.5 group">
             {settings?.logo_url ? (
-              <img src={settings.logo_url} alt="" className="h-9 w-9 rounded-lg object-cover ring-2 ring-white/10" />
+              <img src={settings.logo_url} alt={store.name} className="h-9 w-9 rounded-lg object-cover ring-2 ring-white/10" />
             ) : (
               <div
                 className="h-9 w-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
@@ -171,19 +210,26 @@ function StoreShell({
             {blogPosts && blogPosts.length > 0 && (
               <StoreNavLink href={`${baseUrl}/blog`} active={pathname.includes("/blog")}>Блог</StoreNavLink>
             )}
+            <button
+              onClick={() => setSearchOpen(!searchOpen)}
+              className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all"
+              title="Поиск"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             <div className="w-px h-6 bg-white/15 mx-2" />
             {isLoggedIn && isCustomer ? (
               <div className="flex items-center gap-1">
-                <Link href={`${baseUrl}/profile`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Профиль">
+                <Link href={`${baseUrl}/profile`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Профиль" aria-label="Профиль" aria-label="Профиль">
                   <User className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/orders`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Заказы">
+                <Link href={`${baseUrl}/orders`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Заказы" aria-label="Заказы" aria-label="Заказы">
                   <ClipboardList className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/wishlist`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Избранное">
+                <Link href={`${baseUrl}/wishlist`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Избранное" aria-label="Избранное" aria-label="Избранное">
                   <Heart className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/cart`} className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Корзина">
+                <Link href={`${baseUrl}/cart`} className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Корзина" aria-label="Корзина" aria-label="Корзина">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: primaryColor }}>
@@ -191,7 +237,7 @@ function StoreShell({
                     </span>
                   )}
                 </Link>
-                <button onClick={handleLogout} className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/10 transition-all" title="Выйти">
+                <button onClick={handleLogout} className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/10 transition-all" title="Выйти" aria-label="Выйти" aria-label="Выйти">
                   <LogOut className="h-5 w-5" />
                 </button>
               </div>
@@ -206,7 +252,7 @@ function StoreShell({
 
           {/* Mobile */}
           <div className="flex md:hidden items-center gap-2">
-            <Link href={`${baseUrl}/cart`} className="relative p-2 text-white">
+            <Link href={`${baseUrl}/cart`} className="relative p-2 text-white" aria-label="Корзина">
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: primaryColor }}>
@@ -214,7 +260,7 @@ function StoreShell({
                 </span>
               )}
             </Link>
-            <button className="p-2 text-white" onClick={() => setMobileMenu(!mobileMenu)}>
+            <button className="p-2 text-white" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Меню">
               {mobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
@@ -253,6 +299,72 @@ function StoreShell({
           </div>
         )}
       </header>
+
+      {/* Search overlay */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setSearchOpen(false)}>
+          <div className="container mx-auto px-4 pt-20" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handleHeaderSearch} className="relative max-w-xl mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Поиск товаров..."
+                value={headerSearch}
+                onChange={(e) => setHeaderSearch(e.target.value)}
+                className="w-full pl-12 pr-12 py-4 rounded-2xl bg-white text-gray-900 text-lg shadow-2xl border-0 outline-none placeholder:text-gray-400"
+              />
+              <button
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-lg text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Breadcrumbs */}
+      {pathname !== baseUrl && (
+        <div className="container mx-auto px-4 pt-3">
+          <nav className="flex items-center gap-1 text-sm text-gray-400">
+            <Link href={baseUrl} className="hover:text-gray-700 transition-colors">Главная</Link>
+            {(() => {
+              const segments = pathname.replace(baseUrl, "").split("/").filter(Boolean);
+              const labels: Record<string, string> = {
+                cart: "Корзина",
+                checkout: "Оформление",
+                orders: "Заказы",
+                wishlist: "Избранное",
+                profile: "Профиль",
+                product: "Товар",
+                blog: "Блог",
+                page: "Страница",
+                compare: "Сравнение",
+                login: "Вход",
+                register: "Регистрация",
+              };
+              return segments.map((seg, i) => (
+                <span key={i} className="flex items-center gap-1">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                  {i === segments.length - 1 ? (
+                    <span className="text-gray-700 font-medium">{labels[seg] || decodeURIComponent(seg)}</span>
+                  ) : (
+                    <Link
+                      href={`${baseUrl}/${segments.slice(0, i + 1).join("/")}`}
+                      className="hover:text-gray-700 transition-colors"
+                    >
+                      {labels[seg] || decodeURIComponent(seg)}
+                    </Link>
+                  )}
+                </span>
+              ));
+            })()}
+          </nav>
+        </div>
+      )}
 
       {/* Main content */}
       <main className="flex-1 container mx-auto px-4 py-6 pb-24 md:pb-6">

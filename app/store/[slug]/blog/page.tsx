@@ -33,7 +33,7 @@ export default function StoreBlogPage({
       {!posts?.length ? (
         <div className="text-center py-20">
           <BookOpen className="h-12 w-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-500">Пока нет статей</p>
+          <p className="s-muted">Пока нет статей</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -41,7 +41,7 @@ export default function StoreBlogPage({
             <Link
               key={post.id}
               href={`/store/${slug}/blog/${post.slug}`}
-              className="group rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow"
+              className="group rounded-2xl border s-border overflow-hidden shadow-sm s-card hover:shadow-md transition-shadow"
             >
               {post.cover_image ? (
                 <img
@@ -58,7 +58,7 @@ export default function StoreBlogPage({
                 <h2 className="font-semibold text-lg line-clamp-2 group-hover:text-gray-700 transition-colors">
                   {post.title}
                 </h2>
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs s-muted mt-2">
                   {new Date(post.created_at).toLocaleDateString("ru-RU", {
                     year: "numeric",
                     month: "long",

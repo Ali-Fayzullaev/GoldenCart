@@ -25,8 +25,8 @@ export default function ComparePage({
     return (
       <div className="text-center py-20">
         <GitCompareArrows className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-        <p className="text-gray-500 text-lg">Нет товаров для сравнения</p>
-        <p className="text-gray-400 text-sm mt-1">
+        <p className="s-muted text-lg">Нет товаров для сравнения</p>
+        <p className="s-muted text-sm mt-1">
           Добавьте товары через каталог магазина
         </p>
         <a
@@ -105,7 +105,7 @@ export default function ComparePage({
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="w-40" />
+              <th className="w-40 sticky left-0 z-10 s-card" />
               {items.map((p) => (
                 <th
                   key={p.product_id}
@@ -116,7 +116,7 @@ export default function ComparePage({
                       onClick={() => removeFromCompare(p.product_id)}
                       className="absolute -top-1 -right-1 bg-gray-100 rounded-full p-0.5 hover:bg-red-100"
                     >
-                      <X className="h-3.5 w-3.5 text-gray-500" />
+                      <X className="h-3.5 w-3.5 s-muted" />
                     </button>
                     <a href={`/store/${slug}/product/${p.product_id}`}>
                       {p.image ? (
@@ -140,7 +140,7 @@ export default function ComparePage({
           <tbody>
             {rows.map((row) => (
               <tr key={row.label} className="border-b">
-                <td className="p-3 text-sm font-medium text-gray-500 bg-gray-50">
+                <td className="p-3 text-sm font-medium s-muted s-card sticky left-0 z-10">
                   {row.label}
                 </td>
                 {row.values.map((val, i) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { ShoppingCart, Package, CheckCircle2, Truck, MapPin, XCircle, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,7 @@ function OrderTimeline({
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                   isCompleted
                     ? "text-white"
-                    : "bg-gray-200 text-gray-400"
+                    : "bg-gray-200 s-muted"
                 } ${isCurrent ? "ring-2 ring-offset-2" : ""}`}
                 style={
                   isCompleted
@@ -82,7 +82,7 @@ function OrderTimeline({
               </div>
               <span
                 className={`text-xs mt-1.5 ${
-                  isCompleted ? "font-medium" : "text-gray-400"
+                  isCompleted ? "font-medium" : "s-muted"
                 }`}
                 style={isCompleted ? { color: primaryColor } : {}}
               >
@@ -107,6 +107,9 @@ export default function CustomerOrdersPage({
   const addItem = useCartStore((s) => s.addItem);
 
   const primaryColor = store?.store_settings?.primary_color || "#f59e0b";
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const filtered = orders?.filter((o) => statusFilter === "all" || o.status === statusFilter) || [];
 
   const handleRepeatOrder = (order: typeof orders extends (infer T)[] | undefined ? T : never) => {
     if (!order?.order_items?.length || !store) return;
@@ -135,7 +138,7 @@ export default function CustomerOrdersPage({
       <div className="text-center py-20">
         <ShoppingCart className="h-16 w-16 text-gray-200 mx-auto mb-4" />
         <h2 className="text-xl font-bold mb-2">Заказов пока нет</h2>
-        <p className="text-gray-500">Сделайте свой первый заказ!</p>
+        <p className="s-muted">Сделайте свой первый заказ!</p>
       </div>
     );
   }
@@ -144,18 +147,20 @@ export default function CustomerOrdersPage({
     <div className="max-w-2xl mx-auto py-6 space-y-4">
       <h1 className="text-2xl font-bold">Мои заказы</h1>
 
-      {orders.map((order) => (
-        <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <StatusFilter value={statusFilter} onChange={setStatusFilter} primaryColor={primaryColor} />
+
+      {filtered.map((order) => (
+        <div key={order.id} className="s-card rounded-2xl border s-border shadow-sm overflow-hidden">
           <div className="p-4 flex items-center justify-between border-b">
             <div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm s-muted">
                 {new Date(order.created_at).toLocaleDateString("ru-RU", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                 })}
               </p>
-              <p className="font-mono text-xs text-gray-400">
+              <p className="font-mono text-xs s-muted">
                 #{order.id.slice(0, 8)}
               </p>
             </div>
@@ -178,7 +183,7 @@ export default function CustomerOrdersPage({
                     />
                   )}
                   <span>{item.products?.name}</span>
-                  <span className="text-gray-400">× {item.quantity}</span>
+                  <span className="s-muted">× {item.quantity}</span>
                 </div>
                 <span className="font-medium">
                   {formatPrice(item.price_at_time * item.quantity)}
@@ -205,6 +210,44 @@ export default function CustomerOrdersPage({
             </div>
           </div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+const STATUS_TABS = [
+  { value: "all", label: "Все" },
+  { value: "pending", label: "В обработке" },
+  { value: "confirmed", label: "Подтверждён" },
+  { value: "shipped", label: "Отправлен" },
+  { value: "delivered", label: "Доставлен" },
+  { value: "cancelled", label: "Отменён" },
+];
+
+function StatusFilter({
+  value,
+  onChange,
+  primaryColor,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  primaryColor: string;
+}) {
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+      {STATUS_TABS.map((tab) => (
+        <button
+          key={tab.value}
+          onClick={() => onChange(tab.value)}
+          className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            value === tab.value
+              ? "text-white shadow-md"
+              : "s-card text-gray-600 border s-border hover:border-gray-300 s-hover"
+          }`}
+          style={value === tab.value ? { backgroundColor: primaryColor } : {}}
+        >
+          {tab.label}
+        </button>
       ))}
     </div>
   );
