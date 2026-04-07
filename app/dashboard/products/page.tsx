@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Loader2, Package, X, Link2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Package, X, Link2, Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Download, ChevronDown } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,12 +47,20 @@ import { useStoreCategories } from "@/lib/hooks/use-store-categories";
 import { toast } from "sonner";
 import type { Product, ProductVariantOption } from "@/lib/types/database";
 
+type ImportResult = { imported: number; total: number; errors?: string[] };
+
 export default function ProductsManagementPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: products, isLoading: productsLoading } = useStoreProducts(store?.id);
   const deleteProduct = useDeleteProduct();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [showImport, setShowImport] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const handleEdit = (product: Product) => {
     setEditProduct(product);
@@ -65,6 +75,59 @@ export default function ProductsManagementPage() {
     } catch {
       toast.error("Ошибка удаления");
     }
+  };
+
+  const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      const ext = f.name.split(".").pop()?.toLowerCase();
+      if (!["csv", "tsv", "txt"].includes(ext || "")) { toast.error("Поддерживаются только CSV/TSV файлы"); return; }
+      if (f.size > 5 * 1024 * 1024) { toast.error("Максимальный размер файла — 5 МБ"); return; }
+      setImportFile(f);
+      setImportResult(null);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile || !store) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const formData = new FormData();
+      formData.append("file", importFile);
+      formData.append("store_id", store.id);
+      const res = await fetch("/api/import", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Ошибка импорта");
+        if (data.details) setImportResult({ imported: 0, total: 0, errors: data.details });
+        return;
+      }
+      setImportResult(data);
+      queryClient.invalidateQueries({ queryKey: ["store-products"] });
+      toast.success(`Импортировано ${data.imported} товаров!`);
+    } catch { toast.error("Ошибка при загрузке файла"); }
+    finally { setImporting(false); }
+  };
+
+  const handleDownloadTemplate = () => {
+    const header = "Название;Описание;Цена;Остаток;Категория;Изображения";
+    const example1 = 'Футболка чёрная;"Хлопковая футболка, размер M";1500;50;Одежда;https://example.com/img1.jpg|https://example.com/img2.jpg';
+    const example2 = "Кроссовки;Спортивные беговые кроссовки;4990;20;Спорт;";
+    const csv = [header, example1, example2].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "шаблон_импорта.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (storeLoading || productsLoading) {
@@ -186,6 +249,65 @@ export default function ProductsManagementPage() {
           </Table>
         </div>
       )}
+
+      {/* CSV Import section */}
+      <div className="bg-white rounded-xl border">
+        <button
+          onClick={() => setShowImport(!showImport)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Upload className="h-5 w-5 text-gray-400" />
+            <div>
+              <p className="font-medium text-sm">Импорт из CSV</p>
+              <p className="text-xs text-gray-400">Массовая загрузка товаров из файла</p>
+            </div>
+          </div>
+          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showImport ? "rotate-180" : ""}`} />
+        </button>
+        {showImport && (
+          <div className="px-4 pb-4 space-y-4 border-t">
+            <div className="flex items-center justify-between pt-3">
+              <p className="text-sm text-gray-500">CSV/TSV, разделитель: запятая/; /Tab. Обязательно: Название, Цена.</p>
+              <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
+                <Download className="mr-1 h-3.5 w-3.5" />
+                Шаблон
+              </Button>
+            </div>
+            <div
+              className="border-2 border-dashed rounded-lg p-6 text-center hover:border-amber-400 transition-colors cursor-pointer"
+              onClick={() => importFileRef.current?.click()}
+            >
+              <input ref={importFileRef} type="file" accept=".csv,.tsv,.txt" className="hidden" onChange={handleImportFileChange} />
+              {importFile ? (
+                <div className="flex items-center justify-center gap-2">
+                  <FileSpreadsheet className="h-5 w-5 text-amber-500" />
+                  <span className="font-medium text-sm">{importFile.name}</span>
+                  <span className="text-xs text-gray-400">({(importFile.size / 1024).toFixed(1)} КБ)</span>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Нажмите, чтобы выбрать CSV файл</p>
+              )}
+            </div>
+            {importFile && (
+              <Button onClick={handleImport} disabled={importing} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+                {importing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Импорт...</> : <><Upload className="mr-2 h-4 w-4" />Импортировать</>}
+              </Button>
+            )}
+            {importResult && (
+              <div className={`rounded-lg p-3 flex items-center gap-3 ${importResult.imported > 0 ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
+                {importResult.imported > 0 ? <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" /> : <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />}
+                <p className="text-sm font-medium">Импортировано: {importResult.imported} из {importResult.total}</p>
+              </div>
+            )}
+            {importResult?.errors && importResult.errors.length > 0 && (
+              <div className="bg-white border rounded-lg p-3 max-h-40 overflow-y-auto text-xs text-gray-600 space-y-0.5">
+                {importResult.errors.map((err, i) => <p key={i}>{err}</p>)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

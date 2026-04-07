@@ -112,7 +112,7 @@ export function useUpdateStoreSettings() {
     mutationFn: async ({
       storeId,
       ...updates
-    }: StoreSettingsInput & { storeId: string; logo_url?: string | null; banner_url?: string | null }) => {
+    }: StoreSettingsInput & { storeId: string; logo_url?: string | null; banner_url?: string | null; instagram_url?: string; telegram_url?: string; vk_url?: string; whatsapp_url?: string }) => {
       const { data, error } = await supabase
         .from("store_settings")
         .update(updates as never)

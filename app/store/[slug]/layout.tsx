@@ -19,7 +19,6 @@ import { useProfile } from "@/lib/hooks/use-profile";
 import { useCartStore } from "@/lib/store/cart-store";
 import { usePublicStorePages } from "@/lib/hooks/use-store-pages";
 import { usePublicBlogPosts } from "@/lib/hooks/use-blog-posts";
-import { usePublicStoreFaqs } from "@/lib/hooks/use-store-faqs";
 import { createClient } from "@/lib/supabase/client";
 import type { StoreWithSettings } from "@/lib/types/database";
 
@@ -73,7 +72,6 @@ function StoreShell({
   const [mobileMenu, setMobileMenu] = useState(false);
   const { data: cmsPages } = usePublicStorePages(store.id);
   const { data: blogPosts } = usePublicBlogPosts(store.id);
-  const { data: faqItems } = usePublicStoreFaqs(store.id);
 
   useEffect(() => {
     setCartCount(getStoreItemCount(store.id));
@@ -140,14 +138,6 @@ function StoreShell({
                 Блог
               </Link>
             )}
-            {faqItems && faqItems.length > 0 && (
-              <Link
-                href={`${baseUrl}/faq`}
-                className="text-sm text-gray-300 hover:text-white transition-colors"
-              >
-                FAQ
-              </Link>
-            )}
 
             {isLoggedIn && isCustomer ? (
               <>
@@ -209,11 +199,6 @@ function StoreShell({
             {blogPosts && blogPosts.length > 0 && (
               <Link href={`${baseUrl}/blog`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
                 Блог
-              </Link>
-            )}
-            {faqItems && faqItems.length > 0 && (
-              <Link href={`${baseUrl}/faq`} className="block text-sm text-gray-300 py-2" onClick={() => setMobileMenu(false)}>
-                FAQ
               </Link>
             )}
             {isLoggedIn && isCustomer ? (

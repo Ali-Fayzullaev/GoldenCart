@@ -139,8 +139,14 @@ export type StorePage = {
 };
 
 export type PageBlock = {
-  type: "heading" | "text" | "image" | "divider";
+  type: "heading" | "text" | "image" | "divider" | "button" | "spacer" | "video" | "quote" | "list" | "html";
   content: string;
+  // Optional styling
+  color?: string;
+  bgColor?: string;
+  align?: "left" | "center" | "right";
+  link?: string;
+  size?: "sm" | "md" | "lg";
 };
 
 export type StoreBanner = {

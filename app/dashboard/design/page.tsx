@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Upload as UploadIcon, Check, Sparkles } from "lucide-react";
+import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,6 +158,10 @@ export default function DesignPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [telegramUrl, setTelegramUrl] = useState("");
+  const [vkUrl, setVkUrl] = useState("");
+  const [whatsappUrl, setWhatsappUrl] = useState("");
 
   useEffect(() => {
     if (settings) {
@@ -170,6 +174,10 @@ export default function DesignPage() {
       setWelcomeText(settings.welcome_text);
       setLogoUrl(settings.logo_url);
       setBannerUrl(settings.banner_url);
+      setInstagramUrl(settings.instagram_url || "");
+      setTelegramUrl(settings.telegram_url || "");
+      setVkUrl(settings.vk_url || "");
+      setWhatsappUrl(settings.whatsapp_url || "");
     }
   }, [settings]);
 
@@ -198,6 +206,10 @@ export default function DesignPage() {
         welcome_text: welcomeText,
         logo_url: logoUrl,
         banner_url: bannerUrl,
+        instagram_url: instagramUrl,
+        telegram_url: telegramUrl,
+        vk_url: vkUrl,
+        whatsapp_url: whatsappUrl,
       });
       toast.success("Дизайн сохранён");
     } catch {
@@ -397,6 +409,32 @@ export default function DesignPage() {
                   onChange={(e) => handleFileUpload(e, "banners", setBannerUrl)}
                 />
               </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-blue-500" />
+            <h2 className="text-lg font-semibold">Социальные сети</h2>
+          </div>
+          <p className="text-sm text-gray-500">Ссылки будут показаны в подвале магазина</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-sm">Instagram</Label>
+              <Input placeholder="https://instagram.com/yourstore" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">Telegram</Label>
+              <Input placeholder="https://t.me/yourstore" value={telegramUrl} onChange={(e) => setTelegramUrl(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">ВКонтакте</Label>
+              <Input placeholder="https://vk.com/yourstore" value={vkUrl} onChange={(e) => setVkUrl(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm">WhatsApp</Label>
+              <Input placeholder="https://wa.me/79991234567" value={whatsappUrl} onChange={(e) => setWhatsappUrl(e.target.value)} />
             </div>
           </div>
         </div>

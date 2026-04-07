@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -9,44 +10,66 @@ import {
   ShoppingCart,
   Users,
   Palette,
-  Share2,
   LogOut,
   Tag,
-  Upload,
-  FileText,
   ImageIcon,
   FolderTree,
   Truck,
   MessageSquare,
   BookOpen,
-  HelpCircle,
-  Globe,
+  ChevronDown,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useMyStore } from "@/lib/hooks/use-stores";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
-const navItems = [
-  { href: "/dashboard", label: "Обзор", icon: LayoutDashboard },
-  { href: "/dashboard/store", label: "Мой магазин", icon: Store },
-  { href: "/dashboard/design", label: "Дизайн", icon: Palette },
-  { href: "/dashboard/products", label: "Товары", icon: Package },
-  { href: "/dashboard/categories", label: "Категории", icon: FolderTree },
-  { href: "/dashboard/orders", label: "Заказы", icon: ShoppingCart },
-  { href: "/dashboard/shipping", label: "Доставка", icon: Truck },
-  { href: "/dashboard/promo", label: "Промокоды", icon: Tag },
-  { href: "/dashboard/reviews", label: "Отзывы", icon: MessageSquare },
-  { href: "/dashboard/pages", label: "Страницы", icon: FileText },
-  { href: "/dashboard/blog", label: "Блог", icon: BookOpen },
-  { href: "/dashboard/faq", label: "FAQ", icon: HelpCircle },
-  { href: "/dashboard/banners", label: "Баннеры", icon: ImageIcon },
-  { href: "/dashboard/social", label: "Соцсети", icon: Globe },
-  { href: "/dashboard/import", label: "Импорт CSV", icon: Upload },
-  { href: "/dashboard/customers", label: "Покупатели", icon: Users },
-  { href: "/dashboard/share", label: "Поделиться", icon: Share2 },
+type NavGroup = {
+  label: string;
+  items: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "",
+    items: [
+      { href: "/dashboard", label: "Обзор", icon: LayoutDashboard },
+      { href: "/dashboard/store", label: "Мой магазин", icon: Store },
+    ],
+  },
+  {
+    label: "Каталог",
+    items: [
+      { href: "/dashboard/products", label: "Товары", icon: Package },
+      { href: "/dashboard/categories", label: "Категории", icon: FolderTree },
+    ],
+  },
+  {
+    label: "Продажи",
+    items: [
+      { href: "/dashboard/orders", label: "Заказы", icon: ShoppingCart },
+      { href: "/dashboard/shipping", label: "Доставка", icon: Truck },
+      { href: "/dashboard/promo", label: "Промокоды", icon: Tag },
+      { href: "/dashboard/customers", label: "Покупатели", icon: Users },
+    ],
+  },
+  {
+    label: "Контент",
+    items: [
+      { href: "/dashboard/blog", label: "Блог", icon: BookOpen },
+      { href: "/dashboard/banners", label: "Баннеры", icon: ImageIcon },
+      { href: "/dashboard/reviews", label: "Отзывы", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Оформление",
+    items: [
+      { href: "/dashboard/design", label: "Дизайн", icon: Palette },
+    ],
+  },
 ];
 
 export default function DashboardLayout({
@@ -59,6 +82,18 @@ export default function DashboardLayout({
   const supabase = createClient();
   const { data: profile } = useProfile();
   const { data: store } = useMyStore();
+  const [collapsed, setCollapsed] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    navGroups.forEach((g) => {
+      if (g.label) initial[g.label] = true;
+    });
+    return initial;
+  });
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -69,63 +104,139 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-4 border-b border-gray-700">
-          <Link href="/" className="text-xl font-bold text-amber-400">
-            🛒 GoldenCart
-          </Link>
-          {profile && (
-            <p className="text-sm text-gray-400 mt-1 truncate">
-              {profile.full_name || profile.email}
-            </p>
+      <aside
+        className={cn(
+          "bg-gray-950 text-white flex flex-col border-r border-gray-800 transition-all duration-200",
+          collapsed ? "w-16" : "w-60"
+        )}
+      >
+        {/* Logo */}
+        <div className="flex items-center justify-between px-3 h-14 border-b border-gray-800">
+          {!collapsed && (
+            <Link href="/" className="text-lg font-bold text-amber-400 truncate">
+              🛒 GoldenCart
+            </Link>
           )}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              "p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition-colors",
+              collapsed && "mx-auto"
+            )}
+          >
+            {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" &&
-                pathname.startsWith(item.href));
+        {/* Profile */}
+        {!collapsed && profile && (
+          <div className="px-3 py-2 border-b border-gray-800">
+            <p className="text-xs text-gray-500 truncate">
+              {profile.full_name || profile.email}
+            </p>
+          </div>
+        )}
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-1 scrollbar-thin">
+          {navGroups.map((group, gi) => {
+            const isGroupOpen = !group.label || openGroups[group.label];
+            const hasActive = group.items.some(
+              (item) =>
+                pathname === item.href ||
+                (item.href !== "/dashboard" && pathname.startsWith(item.href))
+            );
+
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                  isActive
-                    ? "bg-amber-500/20 text-amber-400"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+              <div key={gi}>
+                {/* Group header */}
+                {group.label && !collapsed && (
+                  <button
+                    onClick={() => toggleGroup(group.label)}
+                    className="w-full flex items-center justify-between px-2 pt-3 pb-1 group"
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 group-hover:text-gray-400 transition-colors">
+                      {group.label}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-3 w-3 text-gray-600 transition-transform",
+                        !isGroupOpen && "-rotate-90"
+                      )}
+                    />
+                  </button>
                 )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+                {collapsed && group.label && (
+                  <div className="border-t border-gray-800 mx-2 my-1" />
+                )}
+
+                {/* Group items */}
+                {(isGroupOpen || collapsed) &&
+                  group.items.map((item) => {
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== "/dashboard" && pathname.startsWith(item.href));
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        title={collapsed ? item.label : undefined}
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-lg text-[13px] transition-all",
+                          collapsed ? "justify-center px-0 py-2 mx-auto w-10 h-10" : "px-2.5 py-1.5",
+                          isActive
+                            ? "bg-amber-500/15 text-amber-400 font-medium"
+                            : "text-gray-400 hover:bg-gray-800/70 hover:text-gray-200"
+                        )}
+                      >
+                        <item.icon className={cn("shrink-0", collapsed ? "h-4.5 w-4.5" : "h-4 w-4")} />
+                        {!collapsed && <span className="truncate">{item.label}</span>}
+                      </Link>
+                    );
+                  })}
+              </div>
             );
           })}
         </nav>
 
-        {store && (
-          <div className="p-3 border-t border-gray-700">
-            <p className="text-xs text-gray-500 mb-1">Ваш магазин</p>
-            <p className="text-sm text-amber-400 truncate">{store.name}</p>
+        {/* Store info */}
+        {store && !collapsed && (
+          <div className="px-3 py-2.5 border-t border-gray-800">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">
+                {store.name.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-gray-300 truncate">{store.name}</p>
+                <p className="text-[10px] text-gray-600 truncate">{store.slug}</p>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="p-3 border-t border-gray-700">
+        {/* Logout */}
+        <div className="px-2 py-2 border-t border-gray-800">
           <Button
             variant="ghost"
-            className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
+            className={cn(
+              "w-full text-gray-500 hover:text-white hover:bg-gray-800 text-xs",
+              collapsed ? "justify-center px-0" : "justify-start"
+            )}
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-4 w-4" />
-            Выйти
+            <LogOut className={cn("h-4 w-4", !collapsed && "mr-2")} />
+            {!collapsed && "Выйти"}
           </Button>
         </div>
       </aside>
 
       {/* Main */}
-      <main className="flex-1 bg-gray-50 p-6 overflow-auto">{children}</main>
+      <main className="flex-1 bg-gray-50 overflow-auto">
+        <div className="max-w-6xl mx-auto p-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

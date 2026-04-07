@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Send, CheckCircle2, AlertCircle, Gift } from "lucide-react";
+import { Loader2, Send, CheckCircle2, AlertCircle, Gift, Copy, Check, ExternalLink, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -161,6 +161,9 @@ export default function StoreManagementPage() {
           currentValue={store.first_order_discount_value}
         />
       )}
+
+      {/* Поделиться */}
+      {store && <ShareSection storeName={store.name} storeSlug={store.slug} />}
     </div>
   );
 }
@@ -405,6 +408,56 @@ function FirstOrderDiscountSettings({
         {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Сохранить
       </Button>
+    </div>
+  );
+}
+
+function ShareSection({ storeName, storeSlug }: { storeName: string; storeSlug: string }) {
+  const [copied, setCopied] = useState(false);
+  const storeUrl = typeof window !== "undefined" ? `${window.location.origin}/store/${storeSlug}` : `/store/${storeSlug}`;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(storeUrl);
+    setCopied(true);
+    toast.success("Ссылка скопирована!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-purple-50 rounded-lg">
+          <Share2 className="h-5 w-5 text-purple-500" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Поделиться магазином</h2>
+          <p className="text-sm text-gray-500">Ссылка для покупателей</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Input value={storeUrl} readOnly className="font-mono text-sm" />
+        <Button onClick={handleCopy} variant="outline" className="shrink-0">
+          {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+        </Button>
+        <a href={storeUrl} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" className="shrink-0">
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </a>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <a href={`https://t.me/share/url?url=${encodeURIComponent(storeUrl)}&text=${encodeURIComponent(`Загляните в мой магазин "${storeName}"!`)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-gray-50 transition-colors text-sm">
+          Telegram
+        </a>
+        <a href={`https://wa.me/?text=${encodeURIComponent(`Загляните в мой магазин "${storeName}"! ${storeUrl}`)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-gray-50 transition-colors text-sm">
+          WhatsApp
+        </a>
+        <a href={`https://vk.com/share.php?url=${encodeURIComponent(storeUrl)}&title=${encodeURIComponent(storeName)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-gray-50 transition-colors text-sm">
+          VK
+        </a>
+      </div>
     </div>
   );
 }
