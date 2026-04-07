@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -118,7 +118,7 @@ export default function PromoCodesPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -128,12 +128,12 @@ export default function PromoCodesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Промокоды</h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Создавайте скидки для привлечения покупателей
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={<Button className="bg-amber-500 hover:bg-amber-600"><Plus className="mr-2 h-4 w-4" />Новый промокод</Button>} />
+          <DialogTrigger render={<Button className="bg-primary/100 hover:bg-primary/90"><Plus className="mr-2 h-4 w-4" />Новый промокод</Button>} />
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Новый промокод</DialogTitle>
@@ -215,7 +215,7 @@ export default function PromoCodesPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-600"
+                className="w-full bg-primary/100 hover:bg-primary/90"
                 disabled={createPromo.isPending}
               >
                 {createPromo.isPending && (
@@ -230,10 +230,10 @@ export default function PromoCodesPage() {
 
       {/* Список промокодов */}
       {!codes?.length ? (
-        <div className="bg-white rounded-xl border p-12 text-center">
-          <Percent className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Промокодов пока нет</p>
-          <p className="text-sm text-gray-400 mt-1">
+        <div className="bg-card rounded-xl border p-12 text-center">
+          <Percent className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Промокодов пока нет</p>
+          <p className="text-sm text-muted-foreground/60 mt-1">
             Создайте первый промокод для привлечения покупателей
           </p>
         </div>
@@ -248,7 +248,7 @@ export default function PromoCodesPage() {
             return (
               <div
                 key={promo.id}
-                className={`bg-white rounded-xl border p-4 flex items-center gap-4 transition-opacity ${
+                className={`bg-card rounded-xl border p-4 flex items-center gap-4 transition-opacity ${
                   !promo.is_active || isExpired || isExhausted
                     ? "opacity-60"
                     : ""
@@ -256,20 +256,20 @@ export default function PromoCodesPage() {
               >
                 {/* Код */}
                 <div
-                  className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                  className="flex items-center gap-2 bg-secondary px-3 py-2 rounded-lg cursor-pointer hover:bg-muted transition-colors"
                   onClick={() => copyCode(promo.code)}
                 >
                   <span className="font-mono font-bold text-lg">
                     {promo.code}
                   </span>
-                  <Copy className="h-4 w-4 text-gray-400" />
+                  <Copy className="h-4 w-4 text-muted-foreground/60" />
                 </div>
 
                 {/* Инфо */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {promo.discount_type === "percent" ? (
-                      <span className="flex items-center gap-1 text-sm font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                      <span className="flex items-center gap-1 text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
                         <Percent className="h-3 w-3" />
                         {promo.discount_value}%
                       </span>
@@ -281,7 +281,7 @@ export default function PromoCodesPage() {
                     )}
 
                     {promo.min_order_amount > 0 && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         от {formatPrice(promo.min_order_amount)}
                       </span>
                     )}
@@ -298,7 +298,7 @@ export default function PromoCodesPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                     <span>
                       Использован:{" "}
                       {promo.used_count}
@@ -323,7 +323,7 @@ export default function PromoCodesPage() {
                     {promo.is_active ? (
                       <ToggleRight className="h-5 w-5 text-green-500" />
                     ) : (
-                      <ToggleLeft className="h-5 w-5 text-gray-400" />
+                      <ToggleLeft className="h-5 w-5 text-muted-foreground/60" />
                     )}
                   </Button>
                   <Button

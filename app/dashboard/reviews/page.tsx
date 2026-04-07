@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Star, Check, X, MessageSquare, Shield } from "lucide-react";
@@ -55,7 +55,7 @@ export default function ReviewsModerationPage() {
       <h1 className="text-3xl font-bold">Отзывы</h1>
 
       {/* Настройки */}
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-card rounded-xl border p-6 space-y-4">
         <h2 className="font-semibold flex items-center gap-2">
           <Shield className="h-5 w-5" /> Настройки отзывов
         </h2>
@@ -63,7 +63,7 @@ export default function ReviewsModerationPage() {
           <div className="flex items-center justify-between">
             <div>
               <Label className="font-medium">Отзывы включены</Label>
-              <p className="text-xs text-gray-500">Покупатели могут оставлять отзывы</p>
+              <p className="text-xs text-muted-foreground">Покупатели могут оставлять отзывы</p>
             </div>
             <input
               type="checkbox"
@@ -75,7 +75,7 @@ export default function ReviewsModerationPage() {
           <div className="flex items-center justify-between">
             <div>
               <Label className="font-medium">Модерация</Label>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Отзывы публикуются только после одобрения
               </p>
             </div>
@@ -117,14 +117,14 @@ export default function ReviewsModerationPage() {
 
       {/* Список */}
       {!filtered?.length ? (
-        <div className="text-center py-10 bg-white rounded-xl border">
-          <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Нет отзывов</p>
+        <div className="text-center py-10 bg-card rounded-xl border">
+          <MessageSquare className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Нет отзывов</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((review) => (
-            <div key={review.id} className="bg-white rounded-xl border p-4 space-y-2">
+            <div key={review.id} className="bg-card rounded-xl border p-4 space-y-2">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export default function ReviewsModerationPage() {
                           : "Отклонён"}
                     </Badge>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">
                     {new Date(review.created_at).toLocaleDateString("ru-RU")}
                   </p>
                 </div>
@@ -186,14 +186,14 @@ export default function ReviewsModerationPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-gray-400"
+                    className="h-8 w-8 text-muted-foreground/60"
                     onClick={() => handleDelete(review.id, review.product_id)}
                   >
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
-              <p className="text-sm text-gray-700">{review.comment}</p>
+              <p className="text-sm text-foreground/80">{review.comment}</p>
             </div>
           ))}
         </div>

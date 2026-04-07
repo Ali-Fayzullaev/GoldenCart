@@ -132,7 +132,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
@@ -140,14 +140,14 @@ export default function DashboardPage() {
   if (!store) {
     return (
       <div className="flex flex-col items-center justify-center h-96 text-center">
-        <Store className="h-16 w-16 text-gray-300 mb-4" />
+        <Store className="h-16 w-16 text-muted-foreground/40 mb-4" />
         <h2 className="text-2xl font-bold mb-2">У вас ещё нет магазина</h2>
-        <p className="text-gray-500 mb-6">
+        <p className="text-muted-foreground mb-6">
           Создайте свой интернет-магазин прямо сейчас
         </p>
         <Link
           href="/dashboard/store"
-          className="px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           Создать магазин
         </Link>
@@ -168,28 +168,28 @@ export default function DashboardPage() {
       value: products?.length || 0,
       icon: Package,
       href: "/dashboard/products",
-      color: "text-blue-500 bg-blue-50",
+      color: "text-blue-600 bg-blue-500/10 dark:text-blue-400 dark:bg-blue-500/15",
     },
     {
       label: "Заказов",
       value: orders?.length || 0,
       icon: ShoppingCart,
       href: "/dashboard/orders",
-      color: "text-green-500 bg-green-50",
+      color: "text-emerald-600 bg-emerald-500/10 dark:text-emerald-400 dark:bg-emerald-500/15",
     },
     {
       label: "Покупателей",
       value: customers?.length || 0,
       icon: Users,
       href: "/dashboard/customers",
-      color: "text-purple-500 bg-purple-50",
+      color: "text-violet-600 bg-violet-500/10 dark:text-violet-400 dark:bg-violet-500/15",
     },
     {
       label: "Выручка",
       value: formatPrice(totalRevenue),
       icon: Store,
       href: "/dashboard/orders",
-      color: "text-amber-500 bg-amber-50",
+      color: "text-primary bg-primary/10",
     },
   ];
 
@@ -197,12 +197,12 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Обзор</h1>
-          <p className="text-gray-500 mt-1">Магазин: {store.name}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Обзор</h1>
+          <p className="text-muted-foreground mt-1">Магазин: {store.name}</p>
         </div>
         {analytics && (
           <div className="text-right">
-            <p className="text-sm text-gray-500">Сегодня заказов</p>
+            <p className="text-sm text-muted-foreground">Сегодня заказов</p>
             <p className="text-2xl font-bold">{analytics.todayOrders}</p>
           </div>
         )}
@@ -214,11 +214,11 @@ export default function DashboardPage() {
           <Link
             key={stat.label}
             href={stat.href}
-            className="bg-white rounded-xl border p-5 hover:shadow-md transition-shadow"
+            className="bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:shadow-primary/5 transition-all"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">{stat.label}</p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className="text-2xl font-bold mt-1">{stat.value}</p>
               </div>
               <div className={`p-3 rounded-lg ${stat.color}`}>
@@ -231,16 +231,16 @@ export default function DashboardPage() {
 
       {/* Pending orders alert */}
       {pendingOrders > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
           <div>
-            <p className="font-medium text-amber-800">
+            <p className="font-medium text-primary">
               Новых заказов: {pendingOrders}
             </p>
-            <p className="text-sm text-amber-600">Требуют вашего внимания</p>
+            <p className="text-sm text-primary/70">Требуют вашего внимания</p>
           </div>
           <Link
             href="/dashboard/orders"
-            className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm"
           >
             Посмотреть
           </Link>
@@ -281,9 +281,9 @@ export default function DashboardPage() {
               ))}
               {lowStockItems.slice(0, 3).map((p) => (
                 <div key={p.id} className="flex items-center gap-2 text-sm">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
                   <span className="text-red-700 truncate">{p.name}</span>
-                  <span className="text-amber-600 font-medium ml-auto shrink-0">{p.stock} шт.</span>
+                  <span className="text-primary font-medium ml-auto shrink-0">{p.stock} шт.</span>
                 </div>
               ))}
               {(outOfStockItems.length + lowStockItems.length > 6) && (
@@ -300,7 +300,7 @@ export default function DashboardPage() {
       {analytics && orders && orders.length > 0 && (
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Revenue chart */}
-          <div className="lg:col-span-2 bg-white rounded-xl border p-6">
+          <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-semibold">Выручка за неделю</h2>
@@ -339,18 +339,18 @@ export default function DashboardPage() {
                 const height = Math.max((day.amount / maxAmount) * 100, 4);
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs text-gray-500 font-medium">
+                    <span className="text-xs text-muted-foreground font-medium">
                       {day.amount > 0 ? formatPrice(day.amount) : ""}
                     </span>
                     <div
-                      className="w-full rounded-t-md bg-amber-400 hover:bg-amber-500 transition-colors cursor-default relative group"
+                      className="w-full rounded-t-md bg-primary/80 hover:bg-primary transition-colors cursor-default relative group"
                       style={{ height: `${height}%` }}
                     >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs px-2 py-1 rounded shadow-lg border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                         {day.orders} заказ(ов)
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500">{day.date}</span>
+                    <span className="text-xs text-muted-foreground">{day.date}</span>
                   </div>
                 );
               })}
@@ -360,15 +360,15 @@ export default function DashboardPage() {
           {/* Side stats */}
           <div className="space-y-4">
             {/* Average check */}
-            <div className="bg-white rounded-xl border p-5">
-              <p className="text-sm text-gray-500">Средний чек</p>
+            <div className="bg-card rounded-xl border border-border p-5">
+              <p className="text-sm text-muted-foreground">Средний чек</p>
               <p className="text-2xl font-bold mt-1">
                 {formatPrice(analytics.avgCheck)}
               </p>
             </div>
 
             {/* Order status donut */}
-            <div className="bg-white rounded-xl border p-5">
+            <div className="bg-card rounded-xl border border-border p-5">
               <h3 className="text-sm font-semibold mb-3">Статусы заказов</h3>
               <div className="space-y-2">
                 <StatusBar
@@ -411,7 +411,7 @@ export default function DashboardPage() {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Top products */}
         {analytics && analytics.topProducts.length > 0 && (
-          <div className="bg-white rounded-xl border p-6">
+          <div className="bg-card rounded-xl border border-border p-6">
             <h2 className="text-lg font-semibold mb-4">Топ товаров</h2>
             <div className="space-y-3">
               {analytics.topProducts.map(([name, count], i) => (
@@ -419,18 +419,18 @@ export default function DashboardPage() {
                   <span
                     className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
                       i === 0
-                        ? "bg-amber-500"
+                        ? "bg-primary"
                         : i === 1
-                          ? "bg-gray-400"
+                          ? "bg-primary/60"
                           : i === 2
-                            ? "bg-orange-400"
-                            : "bg-gray-300"
+                            ? "bg-primary/40"
+                            : "bg-muted-foreground/30"
                     }`}
                   >
                     {i + 1}
                   </span>
                   <span className="flex-1 text-sm truncate">{name}</span>
-                  <span className="text-sm font-medium text-gray-500">
+                  <span className="text-sm font-medium text-muted-foreground">
                     {count} шт.
                   </span>
                 </div>
@@ -440,7 +440,7 @@ export default function DashboardPage() {
         )}
 
         {/* Quick actions */}
-        <div className="bg-white rounded-xl border p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-lg font-semibold mb-4">Быстрые действия</h2>
           <div className="grid grid-cols-2 gap-3">
             <QuickAction
@@ -459,7 +459,7 @@ export default function DashboardPage() {
               label="Промокоды"
             />
             <QuickAction
-              href="/dashboard/share"
+              href="/dashboard/store"
               icon={Share2}
               label="Поделиться"
             />
@@ -485,10 +485,10 @@ function StatusBar({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600">{label}</span>
+        <span className="text-muted-foreground">{label}</span>
         <span className="font-medium">{count}</span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-secondary rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full ${color} transition-all`}
           style={{ width: `${Math.max(pct, count > 0 ? 4 : 0)}%` }}
@@ -510,9 +510,9 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 p-4 rounded-lg border hover:bg-gray-50 transition-colors text-center"
+      className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border hover:bg-accent transition-colors text-center"
     >
-      <Icon className="h-6 w-6 text-amber-500" />
+      <Icon className="h-6 w-6 text-primary" />
       <span className="text-sm">{label}</span>
     </Link>
   );

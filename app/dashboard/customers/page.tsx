@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Users } from "lucide-react";
 import {
@@ -27,7 +27,7 @@ export default function CustomersPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -37,15 +37,15 @@ export default function CustomersPage() {
       <h1 className="text-3xl font-bold">Покупатели</h1>
 
       {!customers?.length ? (
-        <div className="text-center py-20 bg-white rounded-xl border">
-          <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Покупателей пока нет</p>
-          <p className="text-sm text-gray-400 mt-1">
+        <div className="text-center py-20 bg-card rounded-xl border">
+          <Users className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Покупателей пока нет</p>
+          <p className="text-sm text-muted-foreground/60 mt-1">
             Поделитесь ссылкой на ваш магазин
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-card rounded-xl border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -66,7 +66,7 @@ export default function CustomersPage() {
                           className="h-8 w-8 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-medium text-sm">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
                           {c.profiles?.full_name?.[0] || "?"}
                         </div>
                       )}

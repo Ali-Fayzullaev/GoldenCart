@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ShoppingCart, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ export default function OrdersPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -79,12 +79,12 @@ export default function OrdersPage() {
       </div>
 
       {!orders?.length ? (
-        <div className="text-center py-20 bg-white rounded-xl border">
-          <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Заказов пока нет</p>
+        <div className="text-center py-20 bg-card rounded-xl border">
+          <ShoppingCart className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Заказов пока нет</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-card rounded-xl border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

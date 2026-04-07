@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -222,7 +222,7 @@ export default function ProductsManagementPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -239,7 +239,7 @@ export default function ProductsManagementPage() {
           }}
         >
           <DialogTrigger
-            render={<Button className="bg-amber-500 hover:bg-amber-600" />}
+            render={<Button className="bg-primary/100 hover:bg-primary/90" />}
           >
             <Plus className="mr-2 h-4 w-4" />
             Добавить товар
@@ -260,20 +260,20 @@ export default function ProductsManagementPage() {
       </div>
 
       {!products?.length ? (
-        <div className="text-center py-20 bg-white rounded-xl border">
-          <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Нет товаров. Добавьте первый!</p>
+        <div className="text-center py-20 bg-card rounded-xl border">
+          <Package className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Нет товаров. Добавьте первый!</p>
         </div>
       ) : (
         <>
           {/* Bulk actions bar */}
           {selectedIds.size > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium text-amber-800">
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-primary">
                 Выбрано: {selectedIds.size}
               </span>
               <Select value={bulkAction} onValueChange={(val) => val !== null && setBulkAction(val as typeof bulkAction)}>
-                <SelectTrigger className="w-48 h-9 bg-white">
+                <SelectTrigger className="w-48 h-9 bg-card">
                   <SelectValue placeholder="Действие..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -306,7 +306,7 @@ export default function ProductsManagementPage() {
                   size="sm"
                   onClick={handleBulkApply}
                   disabled={bulkPending}
-                  className="bg-amber-500 hover:bg-amber-600"
+                  className="bg-primary/100 hover:bg-primary/90"
                 >
                   {bulkPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Применить"}
                 </Button>
@@ -321,7 +321,7 @@ export default function ProductsManagementPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-xl border overflow-hidden">
+          <div className="bg-card rounded-xl border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -343,7 +343,7 @@ export default function ProductsManagementPage() {
             </TableHeader>
             <TableBody>
               {products.map((product) => (
-                <TableRow key={product.id} className={selectedIds.has(product.id) ? "bg-amber-50" : ""}>
+                <TableRow key={product.id} className={selectedIds.has(product.id) ? "bg-primary/10" : ""}>
                   <TableCell>
                     <input
                       type="checkbox"
@@ -361,8 +361,8 @@ export default function ProductsManagementPage() {
                           className="h-10 w-10 rounded object-cover"
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded bg-gray-100 flex items-center justify-center">
-                          <Package className="h-5 w-5 text-gray-400" />
+                        <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center">
+                          <Package className="h-5 w-5 text-muted-foreground/60" />
                         </div>
                       )}
                       <span className="font-medium">{product.name}</span>
@@ -373,7 +373,7 @@ export default function ProductsManagementPage() {
                   </TableCell>
                   <TableCell>{formatPrice(product.price)}</TableCell>
                   <TableCell>
-                    <span className={product.stock === 0 ? "text-red-500 font-medium" : product.stock <= (store?.low_stock_threshold ?? 5) ? "text-amber-500 font-medium" : ""}>
+                    <span className={product.stock === 0 ? "text-red-500 font-medium" : product.stock <= (store?.low_stock_threshold ?? 5) ? "text-primary font-medium" : ""}>
                       {product.stock}
                     </span>
                   </TableCell>
@@ -390,7 +390,7 @@ export default function ProductsManagementPage() {
                         onClick={() => handleDuplicate(product)}
                         title="Копировать"
                       >
-                        <Copy className="h-4 w-4 text-gray-500" />
+                        <Copy className="h-4 w-4 text-muted-foreground" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -417,24 +417,24 @@ export default function ProductsManagementPage() {
       )}
 
       {/* CSV Import section */}
-      <div className="bg-white rounded-xl border">
+      <div className="bg-card rounded-xl border">
         <button
           onClick={() => setShowImport(!showImport)}
-          className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors"
         >
           <div className="flex items-center gap-3">
-            <Upload className="h-5 w-5 text-gray-400" />
+            <Upload className="h-5 w-5 text-muted-foreground/60" />
             <div>
               <p className="font-medium text-sm">Импорт из CSV</p>
-              <p className="text-xs text-gray-400">Массовая загрузка товаров из файла</p>
+              <p className="text-xs text-muted-foreground/60">Массовая загрузка товаров из файла</p>
             </div>
           </div>
-          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showImport ? "rotate-180" : ""}`} />
+          <ChevronDown className={`h-4 w-4 text-muted-foreground/60 transition-transform ${showImport ? "rotate-180" : ""}`} />
         </button>
         {showImport && (
           <div className="px-4 pb-4 space-y-4 border-t">
             <div className="flex items-center justify-between pt-3">
-              <p className="text-sm text-gray-500">CSV/TSV, разделитель: запятая/; /Tab. Обязательно: Название, Цена.</p>
+              <p className="text-sm text-muted-foreground">CSV/TSV, разделитель: запятая/; /Tab. Обязательно: Название, Цена.</p>
               <Button variant="outline" size="sm" onClick={handleDownloadTemplate}>
                 <Download className="mr-1 h-3.5 w-3.5" />
                 Шаблон
@@ -447,16 +447,16 @@ export default function ProductsManagementPage() {
               <input ref={importFileRef} type="file" accept=".csv,.tsv,.txt" className="hidden" onChange={handleImportFileChange} />
               {importFile ? (
                 <div className="flex items-center justify-center gap-2">
-                  <FileSpreadsheet className="h-5 w-5 text-amber-500" />
+                  <FileSpreadsheet className="h-5 w-5 text-primary" />
                   <span className="font-medium text-sm">{importFile.name}</span>
-                  <span className="text-xs text-gray-400">({(importFile.size / 1024).toFixed(1)} КБ)</span>
+                  <span className="text-xs text-muted-foreground/60">({(importFile.size / 1024).toFixed(1)} КБ)</span>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">Нажмите, чтобы выбрать CSV файл</p>
+                <p className="text-sm text-muted-foreground">Нажмите, чтобы выбрать CSV файл</p>
               )}
             </div>
             {importFile && (
-              <Button onClick={handleImport} disabled={importing} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+              <Button onClick={handleImport} disabled={importing} className="w-full bg-primary/100 hover:bg-primary/90 text-white">
                 {importing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Импорт...</> : <><Upload className="mr-2 h-4 w-4" />Импортировать</>}
               </Button>
             )}
@@ -467,7 +467,7 @@ export default function ProductsManagementPage() {
               </div>
             )}
             {importResult?.errors && importResult.errors.length > 0 && (
-              <div className="bg-white border rounded-lg p-3 max-h-40 overflow-y-auto text-xs text-gray-600 space-y-0.5">
+              <div className="bg-card border rounded-lg p-3 max-h-40 overflow-y-auto text-xs text-muted-foreground space-y-0.5">
                 {importResult.errors.map((err, i) => <p key={i}>{err}</p>)}
               </div>
             )}
@@ -608,8 +608,8 @@ function ProductForm({
             </div>
           ))}
           {images.length < 5 && (
-            <label className="h-20 w-20 rounded border-2 border-dashed flex items-center justify-center cursor-pointer hover:bg-gray-50">
-              <Plus className="h-5 w-5 text-gray-400" />
+            <label className="h-20 w-20 rounded border-2 border-dashed flex items-center justify-center cursor-pointer hover:bg-accent">
+              <Plus className="h-5 w-5 text-muted-foreground/60" />
               <input
                 type="file"
                 accept="image/*"
@@ -621,15 +621,15 @@ function ProductForm({
           )}
         </div>
         {uploading && (
-          <p className="text-xs text-amber-600 flex items-center gap-1">
+          <p className="text-xs text-primary flex items-center gap-1">
             <Loader2 className="h-3 w-3 animate-spin" /> Загрузка...
           </p>
         )}
-        <p className="text-xs text-gray-400">Макс. размер файла: 2 МБ</p>
+        <p className="text-xs text-muted-foreground/60">Макс. размер файла: 2 МБ</p>
         {images.length < 5 && (
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
               <Input
                 placeholder="https://example.com/image.jpg"
                 value={imageUrl}
@@ -700,7 +700,7 @@ function ProductForm({
                 onClick={() =>
                   setVariants((prev) => prev.filter((_, i) => i !== vi))
                 }
-                className="text-gray-400 hover:text-red-500"
+                className="text-muted-foreground/60 hover:text-red-500"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -709,7 +709,7 @@ function ProductForm({
               {variant.values.map((val, valIdx) => (
                 <span
                   key={valIdx}
-                  className="inline-flex items-center gap-1 bg-gray-100 text-sm px-2 py-0.5 rounded-full"
+                  className="inline-flex items-center gap-1 bg-secondary text-sm px-2 py-0.5 rounded-full"
                 >
                   {val}
                   <button
@@ -729,7 +729,7 @@ function ProductForm({
                       )
                     }
                   >
-                    <X className="h-3 w-3 text-gray-400 hover:text-red-500" />
+                    <X className="h-3 w-3 text-muted-foreground/60 hover:text-red-500" />
                   </button>
                 </span>
               ))}
@@ -790,14 +790,14 @@ function ProductForm({
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground/60">
           Введите название варианта и значения через запятую, затем нажмите +
         </p>
       </div>
 
       <Button
         type="submit"
-        className="w-full bg-amber-500 hover:bg-amber-600"
+        className="w-full bg-primary/100 hover:bg-primary/90"
         disabled={isPending || uploading}
       >
         {(isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

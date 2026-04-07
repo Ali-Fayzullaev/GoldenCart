@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -48,7 +48,7 @@ export default function BannersPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -121,7 +121,7 @@ export default function BannersPage() {
       <h1 className="text-3xl font-bold">Баннеры / Слайдер</h1>
 
       {/* Добавление */}
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-card rounded-xl border p-6 space-y-4">
         <h2 className="font-semibold">Добавить баннер</h2>
 
         <div className="flex gap-3">
@@ -139,7 +139,7 @@ export default function BannersPage() {
 
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
             <Input
               placeholder="https://example.com/banner.jpg"
               value={imageUrl}
@@ -159,26 +159,26 @@ export default function BannersPage() {
           </Button>
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground/60">
           Рекомендуемый размер: 1200×400px. Макс. 2 МБ
         </p>
       </div>
 
       {/* Список баннеров */}
       {!banners?.length ? (
-        <div className="text-center py-10 bg-white rounded-xl border">
-          <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Баннеров пока нет</p>
+        <div className="text-center py-10 bg-card rounded-xl border">
+          <ImageIcon className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Баннеров пока нет</p>
         </div>
       ) : (
         <div className="space-y-3">
           {banners.map((banner) => (
             <div
               key={banner.id}
-              className="bg-white rounded-xl border p-4 space-y-3"
+              className="bg-card rounded-xl border p-4 space-y-3"
             >
               <div className="flex items-start gap-4">
-                <GripVertical className="h-5 w-5 text-gray-300 mt-1 shrink-0" />
+                <GripVertical className="h-5 w-5 text-muted-foreground/40 mt-1 shrink-0" />
                 <img
                   src={banner.image_url}
                   alt={banner.title}
@@ -186,7 +186,7 @@ export default function BannersPage() {
                 />
                 <div className="flex-1 space-y-2">
                   <div>
-                    <Label className="text-xs text-gray-500">Заголовок</Label>
+                    <Label className="text-xs text-muted-foreground">Заголовок</Label>
                     <Input
                       defaultValue={banner.title ?? ""}
                       placeholder="Акция!"
@@ -197,7 +197,7 @@ export default function BannersPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-gray-500">Ссылка</Label>
+                    <Label className="text-xs text-muted-foreground">Ссылка</Label>
                     <Input
                       defaultValue={banner.link ?? ""}
                       placeholder="/store/slug/product/..."
@@ -222,7 +222,7 @@ export default function BannersPage() {
                     {banner.is_active ? (
                       <Eye className="h-4 w-4 text-green-500" />
                     ) : (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground/60" />
                     )}
                   </button>
                   <Button

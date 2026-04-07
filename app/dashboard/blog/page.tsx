@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -79,16 +79,16 @@ export default function BlogDashboardPage() {
       </div>
 
       {!posts?.length ? (
-        <div className="text-center py-10 bg-white rounded-xl border">
-          <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Пока нет статей</p>
+        <div className="text-center py-10 bg-card rounded-xl border">
+          <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Пока нет статей</p>
         </div>
       ) : (
         <div className="space-y-3">
           {posts.map((post) => (
             <div
               key={post.id}
-              className="bg-white rounded-xl border p-4 flex items-center gap-4"
+              className="bg-card rounded-xl border p-4 flex items-center gap-4"
             >
               {post.cover_image ? (
                 <img
@@ -97,13 +97,13 @@ export default function BlogDashboardPage() {
                   className="h-16 w-24 object-cover rounded-lg shrink-0"
                 />
               ) : (
-                <div className="h-16 w-24 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                  <ImageIcon className="h-6 w-6 text-gray-300" />
+                <div className="h-16 w-24 bg-secondary rounded-lg flex items-center justify-center shrink-0">
+                  <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium truncate">{post.title}</h3>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground/60">
                   {new Date(post.created_at).toLocaleDateString("ru-RU")} · /blog/
                   {post.slug}
                 </p>
@@ -112,7 +112,7 @@ export default function BlogDashboardPage() {
                 {post.is_published ? (
                   <Eye className="h-4 w-4 text-green-500" />
                 ) : (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground/60" />
                 )}
                 <Button
                   variant="ghost"
@@ -222,7 +222,7 @@ function BlogEditor({
         </h1>
       </div>
 
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-card rounded-xl border p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <Label>Заголовок</Label>
@@ -267,7 +267,7 @@ function BlogEditor({
       </div>
 
       {/* Блоки контента */}
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-card rounded-xl border p-6 space-y-4">
         <h2 className="font-semibold">Контент</h2>
         {blocks.map((block, i) => (
           <div key={i} className="flex gap-2 items-start">
@@ -293,7 +293,7 @@ function BlogEditor({
                   onChange={(e) => updateBlock(i, e.target.value)}
                 />
               ) : (
-                <hr className="my-2 border-gray-200" />
+                <hr className="my-2 border-border" />
               )}
             </div>
             <Button

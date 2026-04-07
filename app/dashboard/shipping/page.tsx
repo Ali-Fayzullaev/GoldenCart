@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Truck, Plus, Trash2, Eye, EyeOff } from "lucide-react";
@@ -69,11 +69,11 @@ export default function ShippingPage() {
       <h1 className="text-3xl font-bold">Доставка</h1>
 
       {/* Добавление */}
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-card rounded-xl border p-6 space-y-4">
         <h2 className="font-semibold">Добавить способ доставки</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-1">
-            <Label className="text-xs text-gray-500">Название</Label>
+            <Label className="text-xs text-muted-foreground">Название</Label>
             <Input
               placeholder="Курьер, Почта, Самовывоз..."
               value={name}
@@ -81,7 +81,7 @@ export default function ShippingPage() {
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-gray-500">Стоимость (₽)</Label>
+            <Label className="text-xs text-muted-foreground">Стоимость (₽)</Label>
             <Input
               type="number"
               placeholder="300"
@@ -91,7 +91,7 @@ export default function ShippingPage() {
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-gray-500">Бесплатно от (₽)</Label>
+            <Label className="text-xs text-muted-foreground">Бесплатно от (₽)</Label>
             <Input
               type="number"
               placeholder="5000 (необязательно)"
@@ -109,10 +109,10 @@ export default function ShippingPage() {
 
       {/* Список */}
       {!methods?.length ? (
-        <div className="text-center py-10 bg-white rounded-xl border">
-          <Truck className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Способов доставки пока нет</p>
-          <p className="text-xs text-gray-400 mt-1">
+        <div className="text-center py-10 bg-card rounded-xl border">
+          <Truck className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Способов доставки пока нет</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
             Если ни одного способа не создано, покупатель оформит заказ без выбора доставки
           </p>
         </div>
@@ -121,11 +121,11 @@ export default function ShippingPage() {
           {methods.map((m) => (
             <div
               key={m.id}
-              className="bg-white rounded-xl border p-4 flex flex-wrap items-center gap-4"
+              className="bg-card rounded-xl border p-4 flex flex-wrap items-center gap-4"
             >
               <div className="flex-1 min-w-[200px] space-y-2">
                 <div>
-                  <Label className="text-xs text-gray-500">Название</Label>
+                  <Label className="text-xs text-muted-foreground">Название</Label>
                   <Input
                     defaultValue={m.name}
                     className="h-8 text-sm"
@@ -134,7 +134,7 @@ export default function ShippingPage() {
                 </div>
               </div>
               <div className="w-32 space-y-2">
-                <Label className="text-xs text-gray-500">Цена (₽)</Label>
+                <Label className="text-xs text-muted-foreground">Цена (₽)</Label>
                 <Input
                   type="number"
                   defaultValue={m.price}
@@ -144,7 +144,7 @@ export default function ShippingPage() {
                 />
               </div>
               <div className="w-40 space-y-2">
-                <Label className="text-xs text-gray-500">Бесплатно от (₽)</Label>
+                <Label className="text-xs text-muted-foreground">Бесплатно от (₽)</Label>
                 <Input
                   type="number"
                   defaultValue={m.min_order_free ?? ""}
@@ -168,7 +168,7 @@ export default function ShippingPage() {
                   {m.is_active ? (
                     <Eye className="h-4 w-4 text-green-500" />
                   ) : (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-4 w-4 text-muted-foreground/60" />
                   )}
                 </button>
                 <Button
@@ -185,7 +185,7 @@ export default function ShippingPage() {
         </div>
       )}
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted-foreground/60">
         Если указано «Бесплатно от» — при заказе на эту сумму и выше доставка будет бесплатной.
       </p>
     </div>

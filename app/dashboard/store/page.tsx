@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -78,7 +78,7 @@ export default function StoreManagementPage() {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white rounded-xl border p-6 space-y-4"
+        className="bg-card rounded-xl border p-6 space-y-4"
       >
         <div className="space-y-2">
           <Label htmlFor="name">Название магазина</Label>
@@ -142,7 +142,7 @@ export default function StoreManagementPage() {
 
         <Button
           type="submit"
-          className="w-full bg-amber-500 hover:bg-amber-600"
+          className="w-full bg-primary/100 hover:bg-primary/90"
           disabled={isPending}
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -237,22 +237,22 @@ function TelegramSettings({
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 space-y-4">
+    <div className="bg-card rounded-xl border p-6 space-y-4">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-blue-50 rounded-lg">
           <Send className="h-5 w-5 text-blue-500" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Telegram-уведомления</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Получайте уведомления о новых заказах в Telegram
           </p>
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2">
+      <div className="bg-secondary rounded-lg p-4 text-sm space-y-2">
         <p className="font-medium">Как настроить:</p>
-        <ol className="list-decimal list-inside space-y-1 text-gray-600">
+        <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
           <li>
             Откройте{" "}
             <a
@@ -263,17 +263,17 @@ function TelegramSettings({
             >
               @BotFather
             </a>{" "}
-            в Telegram → отправьте <code className="bg-gray-200 px-1 rounded">/newbot</code>
+            в Telegram → отправьте <code className="bg-muted px-1 rounded">/newbot</code>
           </li>
           <li>Скопируйте полученный токен бота</li>
           <li>
             Напишите любое сообщение вашему боту, затем откройте:{" "}
-            <code className="bg-gray-200 px-1 rounded text-xs break-all">
+            <code className="bg-muted px-1 rounded text-xs break-all">
               https://api.telegram.org/bot&lt;ТОКЕН&gt;/getUpdates
             </code>
           </li>
           <li>
-            Найдите <code className="bg-gray-200 px-1 rounded">chat.id</code> — это ваш Chat ID
+            Найдите <code className="bg-muted px-1 rounded">chat.id</code> — это ваш Chat ID
           </li>
         </ol>
       </div>
@@ -356,14 +356,14 @@ function FirstOrderDiscountSettings({
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 space-y-4">
+    <div className="bg-card rounded-xl border p-6 space-y-4">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-amber-50 rounded-lg">
-          <Gift className="h-5 w-5 text-amber-500" />
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <Gift className="h-5 w-5 text-primary" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Скидка на первую покупку</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Автоматическая скидка для новых клиентов
           </p>
         </div>
@@ -375,7 +375,7 @@ function FirstOrderDiscountSettings({
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
           />
           <span className="text-sm font-medium">Включить скидку</span>
         </label>
@@ -410,7 +410,7 @@ function FirstOrderDiscountSettings({
       <Button
         type="button"
         onClick={handleSave}
-        className="w-full bg-amber-500 hover:bg-amber-600"
+        className="w-full bg-primary/100 hover:bg-primary/90"
         disabled={updateStore.isPending}
       >
         {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -443,14 +443,14 @@ function LowStockThresholdSettings({
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 space-y-4">
+    <div className="bg-card rounded-xl border p-6 space-y-4">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-red-50 rounded-lg">
           <AlertTriangle className="h-5 w-5 text-red-500" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Предупреждение о низком остатке</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Показать предупреждение на дашборде, когда остаток товара ≤ порога
           </p>
         </div>
@@ -470,7 +470,7 @@ function LowStockThresholdSettings({
       <Button
         type="button"
         onClick={handleSave}
-        className="w-full bg-amber-500 hover:bg-amber-600"
+        className="w-full bg-primary/100 hover:bg-primary/90"
         disabled={updateStore.isPending}
       >
         {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -492,14 +492,14 @@ function ShareSection({ storeName, storeSlug }: { storeName: string; storeSlug: 
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 space-y-4">
+    <div className="bg-card rounded-xl border p-6 space-y-4">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-purple-50 rounded-lg">
           <Share2 className="h-5 w-5 text-purple-500" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Поделиться магазином</h2>
-          <p className="text-sm text-gray-500">Ссылка для покупателей</p>
+          <p className="text-sm text-muted-foreground">Ссылка для покупателей</p>
         </div>
       </div>
 
@@ -516,13 +516,13 @@ function ShareSection({ storeName, storeSlug }: { storeName: string; storeSlug: 
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <a href={`https://t.me/share/url?url=${encodeURIComponent(storeUrl)}&text=${encodeURIComponent(`Загляните в мой магазин "${storeName}"!`)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-gray-50 transition-colors text-sm">
+        <a href={`https://t.me/share/url?url=${encodeURIComponent(storeUrl)}&text=${encodeURIComponent(`Загляните в мой магазин "${storeName}"!`)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-accent transition-colors text-sm">
           Telegram
         </a>
-        <a href={`https://wa.me/?text=${encodeURIComponent(`Загляните в мой магазин "${storeName}"! ${storeUrl}`)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-gray-50 transition-colors text-sm">
+        <a href={`https://wa.me/?text=${encodeURIComponent(`Загляните в мой магазин "${storeName}"! ${storeUrl}`)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-accent transition-colors text-sm">
           WhatsApp
         </a>
-        <a href={`https://vk.com/share.php?url=${encodeURIComponent(storeUrl)}&title=${encodeURIComponent(storeName)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-gray-50 transition-colors text-sm">
+        <a href={`https://vk.com/share.php?url=${encodeURIComponent(storeUrl)}&title=${encodeURIComponent(storeName)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 p-2.5 rounded-lg border hover:bg-accent transition-colors text-sm">
           VK
         </a>
       </div>

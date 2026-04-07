@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -55,7 +55,7 @@ export default function CategoriesPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -107,11 +107,11 @@ export default function CategoriesPage() {
   const renderCategory = (cat: StoreCategory, depth: number = 0) => (
     <div key={cat.id}>
       <div
-        className="flex items-center gap-2 py-2 px-3 hover:bg-gray-50 rounded-lg"
+        className="flex items-center gap-2 py-2 px-3 hover:bg-accent rounded-lg"
         style={{ paddingLeft: `${depth * 24 + 12}px` }}
       >
         {depth > 0 && (
-          <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
         )}
         {editingId === cat.id ? (
           <div className="flex items-center gap-2 flex-1">
@@ -176,7 +176,7 @@ export default function CategoriesPage() {
       <h1 className="text-3xl font-bold">Категории</h1>
 
       {/* Добавление */}
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-card rounded-xl border p-6 space-y-4">
         <h2 className="font-semibold">Новая категория</h2>
         <div className="flex gap-3">
           <Input
@@ -219,16 +219,16 @@ export default function CategoriesPage() {
 
       {/* Дерево категорий */}
       {!categories?.length ? (
-        <div className="text-center py-10 bg-white rounded-xl border">
-          <FolderTree className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 mb-1">Категорий пока нет</p>
-          <p className="text-gray-400 text-sm">
+        <div className="text-center py-10 bg-card rounded-xl border">
+          <FolderTree className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-1">Категорий пока нет</p>
+          <p className="text-muted-foreground/60 text-sm">
             Создайте свои категории для товаров. Если не создать — будут
             использоваться стандартные
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border divide-y">
+        <div className="bg-card rounded-xl border divide-y">
           {rootCategories.map((cat) => renderCategory(cat))}
         </div>
       )}

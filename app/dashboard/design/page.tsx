@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe } from "lucide-react";
@@ -244,7 +244,7 @@ export default function DesignPage() {
   if (!store) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Сначала создайте магазин</p>
+        <p className="text-muted-foreground">Сначала создайте магазин</p>
       </div>
     );
   }
@@ -256,12 +256,12 @@ export default function DesignPage() {
         <h1 className="text-3xl font-bold">Дизайн магазина</h1>
 
         {/* Готовые дизайны */}
-        <div className="bg-white rounded-xl border p-6 space-y-4">
+        <div className="bg-card rounded-xl border p-6 space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-amber-500" />
+            <Sparkles className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Готовые дизайны</h2>
           </div>
-          <p className="text-sm text-gray-500">Выберите тему и настройте под себя</p>
+          <p className="text-sm text-muted-foreground">Выберите тему и настройте под себя</p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
             {DESIGN_PRESETS.map((preset) => (
@@ -271,11 +271,11 @@ export default function DesignPage() {
                 className={`relative group text-left rounded-xl border-2 p-3 transition-all hover:shadow-md ${
                   activePreset === preset.id
                     ? "border-amber-500 shadow-md ring-2 ring-amber-200"
-                    : "border-gray-200 hover:border-gray-300"
+                    : "border-border hover:border-border"
                 }`}
               >
                 {activePreset === preset.id && (
-                  <div className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-0.5">
+                  <div className="absolute top-2 right-2 bg-primary/100 text-white rounded-full p-0.5">
                     <Check className="h-3 w-3" />
                   </div>
                 )}
@@ -289,9 +289,9 @@ export default function DesignPage() {
                     style={{ backgroundColor: preset.preview.header }}
                   >
                     <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                      <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-                      <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-card/40" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-card/40" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-card/40" />
                     </div>
                   </div>
                   <div className="px-2 py-1 flex gap-1">
@@ -312,14 +312,14 @@ export default function DesignPage() {
                   </div>
                 </div>
                 <p className="text-sm font-medium">{preset.name}</p>
-                <p className="text-xs text-gray-500">{preset.description}</p>
+                <p className="text-xs text-muted-foreground">{preset.description}</p>
                 {/* Палитра */}
                 <div className="flex gap-1 mt-1.5">
                   {[preset.primary_color, preset.secondary_color, preset.accent_color, preset.background_color].map(
                     (c, i) => (
                       <div
                         key={i}
-                        className="w-4 h-4 rounded-full border border-gray-200"
+                        className="w-4 h-4 rounded-full border border-border"
                         style={{ backgroundColor: c }}
                       />
                     )
@@ -330,7 +330,7 @@ export default function DesignPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border p-6 space-y-4">
+        <div className="bg-card rounded-xl border p-6 space-y-4">
           <h2 className="text-lg font-semibold">Цвета</h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -342,7 +342,7 @@ export default function DesignPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border p-6 space-y-4">
+        <div className="bg-card rounded-xl border p-6 space-y-4">
           <h2 className="text-lg font-semibold">Шрифт и текст</h2>
 
           <div className="space-y-2">
@@ -371,7 +371,7 @@ export default function DesignPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border p-6 space-y-4">
+        <div className="bg-card rounded-xl border p-6 space-y-4">
           <h2 className="text-lg font-semibold">Логотип и баннер</h2>
 
           <div className="space-y-2">
@@ -380,7 +380,7 @@ export default function DesignPage() {
               {logoUrl && (
                 <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded object-cover" />
               )}
-              <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-gray-50">
+              <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-accent">
                 <UploadIcon className="h-4 w-4" />
                 <span className="text-sm">Загрузить</span>
                 <input
@@ -399,7 +399,7 @@ export default function DesignPage() {
               {bannerUrl && (
                 <img src={bannerUrl} alt="Banner" className="w-full h-32 rounded object-cover" />
               )}
-              <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-gray-50 w-fit">
+              <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-accent w-fit">
                 <UploadIcon className="h-4 w-4" />
                 <span className="text-sm">Загрузить баннер</span>
                 <input
@@ -413,12 +413,12 @@ export default function DesignPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border p-6 space-y-4">
+        <div className="bg-card rounded-xl border p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-blue-500" />
             <h2 className="text-lg font-semibold">Социальные сети</h2>
           </div>
-          <p className="text-sm text-gray-500">Ссылки будут показаны в подвале магазина</p>
+          <p className="text-sm text-muted-foreground">Ссылки будут показаны в подвале магазина</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-sm">Instagram</Label>
@@ -441,7 +441,7 @@ export default function DesignPage() {
 
         <Button
           onClick={handleSave}
-          className="w-full bg-amber-500 hover:bg-amber-600"
+          className="w-full bg-primary/100 hover:bg-primary/90"
           disabled={updateSettings.isPending || uploading}
         >
           {(updateSettings.isPending || uploading) && (
