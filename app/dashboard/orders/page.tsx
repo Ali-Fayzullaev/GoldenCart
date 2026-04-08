@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { ShoppingCart, Download } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -36,6 +37,10 @@ export default function OrdersPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: orders, isLoading: ordersLoading } = useSellerOrders(store?.id);
   const updateStatus = useUpdateOrderStatus();
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+  const totalPages = Math.ceil((orders?.length || 0) / PAGE_SIZE);
+  const pagedOrders = orders?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) || [];
 
   const handleStatusChange = async (orderId: string, status: string | null) => {
     if (!status) return;
@@ -97,7 +102,7 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {pagedOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-sm">
                     {order.id.slice(0, 8)}...
@@ -146,6 +151,32 @@ export default function OrdersPage() {
               ))}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-sm text-muted-foreground">
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, orders?.length || 0)} из {orders?.length || 0}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent disabled:opacity-40 transition-colors"
+                >
+                  ←
+                </button>
+                <span className="px-3 py-1.5 text-sm">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent disabled:opacity-40 transition-colors"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

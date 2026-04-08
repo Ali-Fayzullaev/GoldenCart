@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { Users } from "lucide-react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -15,6 +16,10 @@ import { useStoreCustomers } from "@/lib/hooks/use-customers";
 export default function CustomersPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: customers, isLoading: customersLoading } = useStoreCustomers(store?.id);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+  const totalPages = Math.ceil((customers?.length || 0) / PAGE_SIZE);
+  const pagedCustomers = customers?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) || [];
 
   if (storeLoading || customersLoading) {
     return (
@@ -55,7 +60,7 @@ export default function CustomersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {customers.map((c) => (
+              {pagedCustomers.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -81,6 +86,32 @@ export default function CustomersPage() {
               ))}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-sm text-muted-foreground">
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, customers?.length || 0)} из {customers?.length || 0}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent disabled:opacity-40 transition-colors"
+                >
+                  ←
+                </button>
+                <span className="px-3 py-1.5 text-sm">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent disabled:opacity-40 transition-colors"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

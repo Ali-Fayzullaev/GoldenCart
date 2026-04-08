@@ -67,6 +67,10 @@ export default function ProductsManagementPage() {
   const [bulkAction, setBulkAction] = useState<"" | "delete" | "hide" | "show" | "price">("");
   const [bulkPrice, setBulkPrice] = useState("");
   const [bulkPending, setBulkPending] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+  const totalPages = Math.ceil((products?.length || 0) / PAGE_SIZE);
+  const pagedProducts = products?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) || [];
 
   const handleEdit = (product: Product) => {
     setEditProduct(product);
@@ -342,7 +346,7 @@ export default function ProductsManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {pagedProducts.map((product) => (
                 <TableRow key={product.id} className={selectedIds.has(product.id) ? "bg-primary/10" : ""}>
                   <TableCell>
                     <input
@@ -412,6 +416,32 @@ export default function ProductsManagementPage() {
               ))}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-sm text-muted-foreground">
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, products?.length || 0)} из {products?.length || 0}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent disabled:opacity-40 transition-colors"
+                >
+                  ←
+                </button>
+                <span className="px-3 py-1.5 text-sm">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border hover:bg-accent disabled:opacity-40 transition-colors"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         </>
       )}

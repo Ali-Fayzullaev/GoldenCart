@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Store,
   Package,
@@ -36,62 +36,86 @@ export default function DashboardPage() {
   const { data: orders } = useSellerOrders(store?.id);
   const { data: customers } = useStoreCustomers(store?.id);
 
+  // Период аналитики
+  const [period, setPeriod] = useState<"7d" | "30d" | "all">("7d");
+
   // Аналитика
   const analytics = useMemo(() => {
     if (!orders?.length) return null;
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const twoWeeksAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const days = period === "7d" ? 7 : period === "30d" ? 30 : 0;
+    const periodStart = days > 0
+      ? new Date(today.getTime() - days * 24 * 60 * 60 * 1000)
+      : new Date(0);
+    const prevPeriodStart = days > 0
+      ? new Date(periodStart.getTime() - days * 24 * 60 * 60 * 1000)
+      : null;
 
-    // Доход за последние 7 дней
-    const thisWeekOrders = orders.filter(
-      (o) => new Date(o.created_at) >= weekAgo && o.status !== "cancelled"
+    // Заказы за текущий период
+    const currentOrders = orders.filter(
+      (o) => new Date(o.created_at) >= periodStart && o.status !== "cancelled"
     );
-    const lastWeekOrders = orders.filter(
-      (o) =>
-        new Date(o.created_at) >= twoWeeksAgo &&
-        new Date(o.created_at) < weekAgo &&
-        o.status !== "cancelled"
-    );
+    const prevOrders = prevPeriodStart
+      ? orders.filter(
+          (o) =>
+            new Date(o.created_at) >= prevPeriodStart &&
+            new Date(o.created_at) < periodStart &&
+            o.status !== "cancelled"
+        )
+      : [];
 
-    const thisWeekRevenue = thisWeekOrders.reduce(
-      (s, o) => s + o.total_amount,
-      0
-    );
-    const lastWeekRevenue = lastWeekOrders.reduce(
-      (s, o) => s + o.total_amount,
-      0
-    );
+    const currentRevenue = currentOrders.reduce((s, o) => s + o.total_amount, 0);
+    const prevRevenue = prevOrders.reduce((s, o) => s + o.total_amount, 0);
     const revenueChange =
-      lastWeekRevenue > 0
-        ? Math.round(
-            ((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100
-          )
-        : thisWeekRevenue > 0
+      prevPeriodStart && prevRevenue > 0
+        ? Math.round(((currentRevenue - prevRevenue) / prevRevenue) * 100)
+        : currentRevenue > 0
           ? 100
           : 0;
 
-    // Доход по дням (7 дней)
-    const dailyRevenue: { date: string; amount: number; orders: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const day = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-      const nextDay = new Date(day.getTime() + 24 * 60 * 60 * 1000);
-      const dayOrders = orders.filter(
-        (o) =>
-          new Date(o.created_at) >= day &&
-          new Date(o.created_at) < nextDay &&
-          o.status !== "cancelled"
-      );
-      dailyRevenue.push({
-        date: day.toLocaleDateString("ru-RU", {
-          weekday: "short",
-          day: "numeric",
-        }),
-        amount: dayOrders.reduce((s, o) => s + o.total_amount, 0),
-        orders: dayOrders.length,
-      });
+    // Данные графика
+    let chartData: { date: string; amount: number; orders: number }[] = [];
+    if (period === "all") {
+      const monthMap: Record<string, { amount: number; orders: number }> = {};
+      orders
+        .filter((o) => o.status !== "cancelled")
+        .forEach((o) => {
+          const d = new Date(o.created_at);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+          if (!monthMap[key]) monthMap[key] = { amount: 0, orders: 0 };
+          monthMap[key].amount += o.total_amount;
+          monthMap[key].orders += 1;
+        });
+      chartData = Object.entries(monthMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .slice(-12)
+        .map(([key, val]) => ({
+          date: new Date(key + "-01").toLocaleDateString("ru-RU", { month: "short", year: "2-digit" }),
+          amount: val.amount,
+          orders: val.orders,
+        }));
+    } else {
+      for (let i = days - 1; i >= 0; i--) {
+        const day = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+        const nextDay = new Date(day.getTime() + 24 * 60 * 60 * 1000);
+        const dayOrders = orders.filter(
+          (o) =>
+            new Date(o.created_at) >= day &&
+            new Date(o.created_at) < nextDay &&
+            o.status !== "cancelled"
+        );
+        chartData.push({
+          date: day.toLocaleDateString("ru-RU",
+            period === "30d"
+              ? { day: "numeric", month: "short" }
+              : { weekday: "short", day: "numeric" }
+          ),
+          amount: dayOrders.reduce((s, o) => s + o.total_amount, 0),
+          orders: dayOrders.length,
+        });
+      }
     }
 
     // Статусы заказов
@@ -127,16 +151,20 @@ export default function DashboardPage() {
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5);
 
+    const periodLabel =
+      period === "7d" ? "за неделю" : period === "30d" ? "за месяц" : "за всё время";
+
     return {
-      thisWeekRevenue,
+      currentRevenue,
       revenueChange,
-      dailyRevenue,
+      chartData,
       statusCounts,
       avgCheck,
       topProducts,
       todayOrders: orders.filter((o) => new Date(o.created_at) >= today).length,
+      periodLabel,
     };
-  }, [orders]);
+  }, [orders, period]);
 
   if (isLoading) {
     return (
@@ -312,10 +340,27 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 bg-card rounded-xl border border-border p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold">Выручка за неделю</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold">Выручка {analytics.periodLabel}</h2>
+                  <div className="flex gap-0.5 bg-secondary rounded-lg p-0.5">
+                    {(["7d", "30d", "all"] as const).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setPeriod(p)}
+                        className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                          period === p
+                            ? "bg-background shadow-sm font-medium"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {p === "7d" ? "7д" : p === "30d" ? "30д" : "Всё"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-2xl font-bold">
-                    {formatPrice(analytics.thisWeekRevenue)}
+                    {formatPrice(analytics.currentRevenue)}
                   </span>
                   {analytics.revenueChange !== 0 && (
                     <span
@@ -341,7 +386,7 @@ export default function DashboardPage() {
             {/* Area chart */}
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={analytics.dailyRevenue} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                <AreaChart data={analytics.chartData} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />

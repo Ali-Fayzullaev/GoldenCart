@@ -43,6 +43,7 @@ export default function StoreFrontPage({
   const [priceMax, setPriceMax] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [minRating, setMinRating] = useState(0);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const ITEMS_PER_PAGE = 12;
@@ -67,7 +68,11 @@ export default function StoreFrontPage({
 
   // Сортировка по популярности (кол-во отзывов) — клиентская
   const filteredProducts = (() => {
-    let list = sort === "popular" && products && ratings
+    let list = sort === "rating" && products && ratings
+      ? [...products].sort(
+          (a, b) => (ratings[b.id]?.avg || 0) - (ratings[a.id]?.avg || 0)
+        )
+      : sort === "popular" && products && ratings
       ? [...products].sort(
           (a, b) =>
             (ratings[b.id]?.count || 0) - (ratings[a.id]?.count || 0)
@@ -82,7 +87,7 @@ export default function StoreFrontPage({
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [search, category, sort, priceMin, priceMax, inStockOnly]);
+  }, [search, category, sort, priceMin, priceMax, inStockOnly, minRating]);
 
   const activeFilterCount = [
     category !== "all",
@@ -129,6 +134,7 @@ export default function StoreFrontPage({
                 <SelectItem value="price_asc">Сначала дешёвые</SelectItem>
                 <SelectItem value="price_desc">Сначала дорогие</SelectItem>
                 <SelectItem value="popular">По популярности</SelectItem>
+                <SelectItem value="rating">По рейтингу</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -259,6 +265,28 @@ export default function StoreFrontPage({
               </div>
               <span className="text-sm text-gray-700">Только в наличии</span>
             </label>
+
+            {/* Rating filter */}
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-gray-700">Рейтинг</span>
+              <div className="flex flex-wrap gap-2">
+                {[4, 3, 2, 1].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setMinRating(minRating === r ? 0 : r)}
+                    className={cn(
+                      "flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm transition-all",
+                      minRating === r
+                        ? "border-gray-900 bg-gray-900 text-white"
+                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    )}
+                  >
+                    <Star className="h-3.5 w-3.5" fill={minRating === r ? "#facc15" : "none"} stroke={minRating === r ? "#facc15" : "currentColor"} />
+                    {r}+
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -281,6 +309,12 @@ export default function StoreFrontPage({
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700">
                 В наличии
                 <button onClick={() => setInStockOnly(false)} className="hover:s-text" aria-label="Убрать фильтр наличия"><X className="h-3 w-3" /></button>
+              </span>
+            )}
+            {minRating > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700">
+                ★ {minRating}+
+                <button onClick={() => setMinRating(0)} className="hover:s-text" aria-label="Убрать фильтр рейтинга"><X className="h-3 w-3" /></button>
               </span>
             )}
           </div>
@@ -349,6 +383,7 @@ export default function StoreFrontPage({
                 setPriceMin("");
                 setPriceMax("");
                 setInStockOnly(false);
+                setMinRating(0);
                 setSearch("");
               }}
             >
