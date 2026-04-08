@@ -220,16 +220,16 @@ function StoreShell({
             <div className="w-px h-6 bg-white/15 mx-2" />
             {isLoggedIn && isCustomer ? (
               <div className="flex items-center gap-1">
-                <Link href={`${baseUrl}/profile`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Профиль" aria-label="Профиль" aria-label="Профиль">
+                <Link href={`${baseUrl}/profile`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Профиль" aria-label="Профиль">
                   <User className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/orders`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Заказы" aria-label="Заказы" aria-label="Заказы">
+                <Link href={`${baseUrl}/orders`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Заказы" aria-label="Заказы">
                   <ClipboardList className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/wishlist`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Избранное" aria-label="Избранное" aria-label="Избранное">
+                <Link href={`${baseUrl}/wishlist`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Избранное" aria-label="Избранное">
                   <Heart className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/cart`} className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Корзина" aria-label="Корзина" aria-label="Корзина">
+                <Link href={`${baseUrl}/cart`} className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Корзина" aria-label="Корзина">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: primaryColor }}>
@@ -237,7 +237,7 @@ function StoreShell({
                     </span>
                   )}
                 </Link>
-                <button onClick={handleLogout} className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/10 transition-all" title="Выйти" aria-label="Выйти" aria-label="Выйти">
+                <button onClick={handleLogout} className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/10 transition-all" title="Выйти" aria-label="Выйти">
                   <LogOut className="h-5 w-5" />
                 </button>
               </div>

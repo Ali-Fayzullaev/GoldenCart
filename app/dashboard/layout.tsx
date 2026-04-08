@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -88,7 +88,10 @@ export default function DashboardLayout({
   const { data: profile } = useProfile();
   const { data: store } = useMyStore();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => setMounted(true), []);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -125,7 +128,7 @@ export default function DashboardLayout({
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="p-2 -mr-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {mounted ? (theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <Sun className="h-4 w-4" />}
         </button>
       </div>
 
@@ -328,9 +331,9 @@ export default function DashboardLayout({
               "p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
               collapsed && "mx-auto"
             )}
-            title={theme === "dark" ? "Светлая тема" : "Тёмная тема"}
+            title={mounted && theme === "dark" ? "Светлая тема" : "Тёмная тема"}
           >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {mounted ? (theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : <Sun className="h-4 w-4" />}
           </button>
           {!collapsed && (
             <Button

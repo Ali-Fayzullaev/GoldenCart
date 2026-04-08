@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FolderTree,
   Plus,
@@ -30,6 +30,18 @@ import {
 import { toast } from "sonner";
 import type { StoreCategory } from "@/lib/types/database";
 
+const DEFAULT_CATEGORIES = [
+  "Одежда",
+  "Электроника",
+  "Дом и сад",
+  "Красота",
+  "Спорт",
+  "Еда",
+  "Книги",
+  "Игрушки",
+  "Другое",
+];
+
 export default function CategoriesPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: categories, isLoading: catsLoading } = useStoreCategories(
@@ -43,6 +55,24 @@ export default function CategoriesPage() {
   const [newParent, setNewParent] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (!store || catsLoading || seeded.current) return;
+    if (categories && categories.length === 0) {
+      seeded.current = true;
+      (async () => {
+        for (let i = 0; i < DEFAULT_CATEGORIES.length; i++) {
+          await createCategory.mutateAsync({
+            store_id: store.id,
+            name: DEFAULT_CATEGORIES[i],
+            parent_id: null,
+            sort_order: i + 1,
+          });
+        }
+      })();
+    }
+  }, [store, categories, catsLoading]);
 
   if (storeLoading || catsLoading) {
     return (

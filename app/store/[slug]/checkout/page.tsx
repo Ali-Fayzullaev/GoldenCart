@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Tag, Check, X, Gift, Truck, MapPin, ShoppingCart, ShoppingBag, CreditCard } from "lucide-react";
+import { Loader2, Tag, Check, X, Gift, Truck, MapPin, ShoppingCart, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -200,7 +200,7 @@ export default function CheckoutPage({
           {[
             { icon: ShoppingCart, label: "Корзина", done: true },
             { icon: Truck, label: "Доставка", done: false, current: true },
-            { icon: CreditCard, label: "Оплата", done: false },
+            { icon: Check, label: "Готово", done: false },
           ].map((step, i, arr) => (
             <div key={i} className="flex items-center">
               <div className="flex flex-col items-center">
@@ -373,6 +373,8 @@ export default function CheckoutPage({
           })}
         </div>
       )}
+
+
 
       {/* Delivery form */}
       <form

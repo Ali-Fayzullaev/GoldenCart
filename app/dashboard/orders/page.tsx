@@ -116,6 +116,7 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell className="font-medium">
                     {formatPrice(order.total_amount)}
+
                   </TableCell>
                   <TableCell className="text-sm max-w-48 truncate">
                     {order.shipping_address}

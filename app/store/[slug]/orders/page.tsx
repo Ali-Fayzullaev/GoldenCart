@@ -164,9 +164,12 @@ export default function CustomerOrdersPage({
                 #{order.id.slice(0, 8)}
               </p>
             </div>
-            <Badge className={getStatusColor(order.status)}>
-              {getStatusLabel(order.status)}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={getStatusColor(order.status)}>
+                {getStatusLabel(order.status)}
+              </Badge>
+
+            </div>
           </div>
 
           <OrderTimeline status={order.status} primaryColor={primaryColor} />
