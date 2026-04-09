@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe, LayoutGrid } from "lucide-react";
+import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe, LayoutGrid, Store, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -374,18 +374,50 @@ export default function DesignPage() {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Логотип и баннер</h2>
+        <div className="bg-card rounded-xl border p-6 space-y-5">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <Store className="h-4.5 w-4.5 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Логотип магазина</h2>
+              <p className="text-xs text-muted-foreground">Отображается в шапке магазина и в карточке при шеринге</p>
+            </div>
+          </div>
 
-          <div className="space-y-2">
-            <Label>Логотип</Label>
-            <div className="flex items-center gap-3">
-              {logoUrl && (
-                <img src={logoUrl} alt="Logo" className="h-12 w-12 rounded object-cover" />
+          <div className="flex items-start gap-6">
+            {/* Preview */}
+            <div className="relative group">
+              {logoUrl ? (
+                <div className="relative">
+                  <img
+                    src={logoUrl}
+                    alt="Логотип"
+                    className="h-28 w-28 rounded-2xl object-cover border-2 border-border shadow-sm"
+                  />
+                  <button
+                    onClick={() => setLogoUrl(null)}
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                    title="Удалить логотип"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="h-28 w-28 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 bg-muted/30">
+                  <Store className="h-8 w-8 text-muted-foreground/30" />
+                  <span className="text-[10px] text-muted-foreground/50">200×200</span>
+                </div>
               )}
-              <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-accent">
-                <UploadIcon className="h-4 w-4" />
-                <span className="text-sm">Загрузить</span>
+            </div>
+
+            {/* Upload */}
+            <div className="flex-1 space-y-3 pt-2">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 hover:bg-primary/10 transition-all">
+                <UploadIcon className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {logoUrl ? "Заменить логотип" : "Загрузить логотип"}
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -393,25 +425,7 @@ export default function DesignPage() {
                   onChange={(e) => handleFileUpload(e, "logos", setLogoUrl)}
                 />
               </label>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Баннер</Label>
-            <div className="space-y-2">
-              {bannerUrl && (
-                <img src={bannerUrl} alt="Banner" className="w-full h-32 rounded object-cover" />
-              )}
-              <label className="cursor-pointer flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-accent w-fit">
-                <UploadIcon className="h-4 w-4" />
-                <span className="text-sm">Загрузить баннер</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleFileUpload(e, "banners", setBannerUrl)}
-                />
-              </label>
+              <p className="text-xs text-muted-foreground">PNG, JPG или SVG. Рекомендуемый размер: 200×200 px</p>
             </div>
           </div>
         </div>

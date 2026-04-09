@@ -190,11 +190,12 @@ export default function ProfilePage({
           <div className="flex-1 space-y-3">
             <div>
               <Label>Имя</Label>
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-col sm:flex-row gap-2 mt-1">
                 <Input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Ваше имя"
+                  className="flex-1"
                 />
                 <Button
                   onClick={handleSaveName}

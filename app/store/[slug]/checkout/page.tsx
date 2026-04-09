@@ -192,8 +192,8 @@ export default function CheckoutPage({
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Оформление заказа</h1>
+    <div className="max-w-2xl mx-auto px-3 sm:px-0 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <h1 className="text-xl sm:text-2xl font-bold">Оформление заказа</h1>
 
         {/* Stepper */}
         <div className="flex items-center justify-center gap-0">
@@ -221,7 +221,7 @@ export default function CheckoutPage({
                 </span>
               </div>
               {i < arr.length - 1 && (
-                <div className={`w-16 h-0.5 mx-2 mt-[-18px] ${step.done ? "" : "bg-gray-200"}`} style={step.done ? { backgroundColor: primaryColor } : {}} />
+                <div className={`w-8 sm:w-16 h-0.5 mx-1 sm:mx-2 mt-[-18px] ${step.done ? "" : "bg-gray-200"}`} style={step.done ? { backgroundColor: primaryColor } : {}} />
               )}
             </div>
           ))}
@@ -334,7 +334,7 @@ export default function CheckoutPage({
 
       {/* Shipping */}
       {shippingMethods && shippingMethods.length > 0 && (
-          <div className="s-card rounded-2xl border s-border p-6 space-y-3 shadow-sm">
+          <div className="s-card rounded-2xl border s-border p-4 sm:p-6 space-y-3 shadow-sm">
             <h2 className="font-semibold s-text flex items-center gap-2">
             <Truck className="h-5 w-5" /> Способ доставки
           </h2>
@@ -379,7 +379,7 @@ export default function CheckoutPage({
       {/* Delivery form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-          className="s-card rounded-2xl border s-border p-6 space-y-4 shadow-sm"
+          className="s-card rounded-2xl border s-border p-4 sm:p-6 space-y-4 shadow-sm"
         >
           <h2 className="font-semibold s-text">Данные доставки</h2>
         {savedAddresses && savedAddresses.length > 0 && (
@@ -445,7 +445,7 @@ export default function CheckoutPage({
         <Button
           type="submit"
           size="lg"
-            className="w-full text-white hover:opacity-90 h-12 rounded-xl text-base font-semibold shadow-md"
+            className="w-full text-white hover:opacity-90 h-11 sm:h-12 rounded-xl text-sm sm:text-base font-semibold shadow-md"
           style={{ backgroundColor: primaryColor }}
           disabled={createOrder.isPending}
         >

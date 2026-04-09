@@ -157,8 +157,13 @@ export type StoreBanner = {
   image_url: string;
   link: string;
   title: string;
+  description: string;
+  button_text: string;
+  banner_type: "slider" | "story";
+  gradient_color: string;
   sort_order: number;
   is_active: boolean;
+  expires_at: string | null;
   created_at: string;
 };
 

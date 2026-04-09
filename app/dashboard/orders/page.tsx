@@ -90,6 +90,7 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div className="bg-card rounded-xl border overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -151,6 +152,7 @@ export default function OrdersPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border">
               <span className="text-sm text-muted-foreground">

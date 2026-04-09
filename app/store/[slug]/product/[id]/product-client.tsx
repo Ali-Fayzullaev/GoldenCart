@@ -142,8 +142,8 @@ export default function ProductDetailClient({
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6">
-      <div className="grid md:grid-cols-2 gap-10">
+    <div className="max-w-5xl mx-auto py-4 sm:py-6 px-0">
+      <div className="grid md:grid-cols-2 gap-5 sm:gap-8 md:gap-10">
         {/* Images */}
         <div className="space-y-3">
           {product.images.length > 0 ? (
@@ -156,12 +156,12 @@ export default function ProductDetailClient({
                 />
               </div>
               {product.images.length > 1 && (
-                <div className="flex gap-2.5">
+                <div className="flex gap-2 sm:gap-2.5 overflow-x-auto pb-1">
                   {product.images.map((img, i) => (
                     <button
                       key={i}
                       onClick={() => setSelectedImage(i)}
-                      className={`h-18 w-18 rounded-xl border-2 overflow-hidden transition-all ${
+                      className={`h-14 w-14 sm:h-18 sm:w-18 shrink-0 rounded-xl border-2 overflow-hidden transition-all ${
                         i === selectedImage ? "ring-2 ring-offset-2 shadow-md" : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                       style={i === selectedImage ? { borderColor: primaryColor } : {}}

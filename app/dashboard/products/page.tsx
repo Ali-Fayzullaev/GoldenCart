@@ -248,7 +248,7 @@ export default function ProductsManagementPage() {
             <Plus className="mr-2 h-4 w-4" />
             Добавить товар
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editProduct ? "Редактировать товар" : "Новый товар"}
@@ -277,7 +277,7 @@ export default function ProductsManagementPage() {
                 Выбрано: {selectedIds.size}
               </span>
               <Select value={bulkAction} onValueChange={(val) => val !== null && setBulkAction(val as typeof bulkAction)}>
-                <SelectTrigger className="w-48 h-9 bg-card">
+                <SelectTrigger className="w-full sm:w-48 h-9 bg-card">
                   <SelectValue placeholder="Действие..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -326,6 +326,7 @@ export default function ProductsManagementPage() {
           )}
 
           <div className="bg-card rounded-xl border overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -416,6 +417,7 @@ export default function ProductsManagementPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border">
               <span className="text-sm text-muted-foreground">

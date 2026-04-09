@@ -86,6 +86,12 @@ export default function StoreFrontPage({
     return list;
   })();
 
+  // Sync search from URL (header search modal navigates with ?q=)
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    if (q !== search) setSearch(q);
+  }, [searchParams]);
+
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
@@ -113,11 +119,12 @@ export default function StoreFrontPage({
   const effectiveCardStyle = cardStyle;
 
   return (
-    <div className="space-y-6">
-      {/* Banner Slider */}
-      {banners && banners.length > 0 && (
-        <BannerSlider banners={banners} />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Stories */}
+      {banners && banners.filter((b: any) => b.banner_type === "story" && b.is_active).length > 0 && (
+        <StoriesRow stories={banners.filter((b: any) => b.banner_type === "story" && b.is_active)} primaryColor={primaryColor} />
       )}
+
 
       {/* Welcome */}
       {settings?.welcome_text && (
@@ -130,7 +137,7 @@ export default function StoreFrontPage({
           <button
             onClick={() => setCategory("all")}
             className={cn(
-              "shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all",
+              "shrink-0 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all",
               category === "all"
                 ? "text-white shadow-md"
                 : "s-card text-gray-600 border s-border hover:border-gray-300 s-hover"
@@ -147,7 +154,7 @@ export default function StoreFrontPage({
               key={cat}
               onClick={() => setCategory(category === cat ? "all" : cat)}
               className={cn(
-                "shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all",
+                "shrink-0 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all",
                 category === cat
                   ? "text-white shadow-md"
                   : "s-card text-gray-600 border s-border hover:border-gray-300 s-hover"
@@ -161,174 +168,189 @@ export default function StoreFrontPage({
       )}
 
       {/* Main layout: sidebar + content */}
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         {/* ── Desktop Sidebar ── */}
-        <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-20 space-y-5">
+        <aside className="hidden lg:block w-72 shrink-0">
+          <div className="sticky top-20 space-y-3">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 s-muted" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Поиск..."
+                placeholder="Поиск товаров..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10 rounded-xl s-card border-gray-200 shadow-sm text-sm"
+                className="pl-10 h-11 rounded-2xl bg-white border-gray-200/80 shadow-sm text-sm placeholder:text-gray-300"
               />
             </div>
 
-            {/* Sort */}
-            <div>
-              <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Сортировка</label>
-              <Select value={sort} onValueChange={(val) => val && setSort(val)}>
-                <SelectTrigger className="h-10 rounded-xl text-sm">
-                  <SelectValue placeholder="Сортировка" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Сначала новые</SelectItem>
-                  <SelectItem value="price_asc">Сначала дешёвые</SelectItem>
-                  <SelectItem value="price_desc">Сначала дорогие</SelectItem>
-                  <SelectItem value="popular">По популярности</SelectItem>
-                  <SelectItem value="rating">По рейтингу</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="h-px bg-gray-200/80" />
-
-            {/* Category (if no chips) */}
-            {!(storeCategories?.length) && (
-              <div>
-                <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Категория</label>
-                <Select value={category} onValueChange={(val) => val && setCategory(val)}>
-                  <SelectTrigger className="h-10 rounded-xl text-sm">
-                    <SelectValue placeholder="Все категории" />
+            {/* Main filters card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 overflow-hidden">
+              {/* Sort */}
+              <div className="p-4">
+                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Сортировка</label>
+                <Select value={sort} onValueChange={(val) => val && setSort(val)}>
+                  <SelectTrigger className="h-10 rounded-xl text-sm border-gray-200/80">
+                    <SelectValue placeholder="Сортировка" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Все категории</SelectItem>
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
+                    <SelectItem value="newest">Сначала новые</SelectItem>
+                    <SelectItem value="price_asc">Сначала дешёвые</SelectItem>
+                    <SelectItem value="price_desc">Сначала дорогие</SelectItem>
+                    <SelectItem value="popular">По популярности</SelectItem>
+                    <SelectItem value="rating">По рейтингу</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
 
-            {/* Price */}
-            <div>
-              <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Цена, ₽</label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  placeholder="от"
-                  value={priceMin}
-                  onChange={(e) => setPriceMin(e.target.value)}
-                  className="h-9 rounded-xl text-sm"
-                  min={0}
-                />
-                <span className="text-gray-300 text-sm">—</span>
-                <Input
-                  type="number"
-                  placeholder="до"
-                  value={priceMax}
-                  onChange={(e) => setPriceMax(e.target.value)}
-                  className="h-9 rounded-xl text-sm"
-                  min={0}
-                />
-              </div>
-            </div>
-
-            {/* In stock */}
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <div
-                className={cn(
-                  "h-[18px] w-[18px] rounded-md border-2 flex items-center justify-center transition-all",
-                  inStockOnly ? "border-gray-900 bg-gray-900" : "border-gray-300"
-                )}
-                onClick={() => setInStockOnly(!inStockOnly)}
-              >
-                {inStockOnly && <Check className="h-3 w-3 text-white" />}
-              </div>
-              <span className="text-sm s-text">Только в наличии</span>
-            </label>
-
-            {/* Rating */}
-            <div>
-              <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Рейтинг</label>
-              <div className="space-y-1">
-                {[4, 3, 2, 1].map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => setMinRating(minRating === r ? 0 : r)}
-                    className={cn(
-                      "flex items-center gap-1.5 w-full px-3 py-1.5 rounded-lg text-sm transition-all",
-                      minRating === r
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    )}
-                  >
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className="h-3 w-3" fill={s <= r ? "#facc15" : "none"} stroke={s <= r ? "#facc15" : "#d1d5db"} />
+              {/* Category (if no chips) */}
+              {!(storeCategories?.length) && (
+                <div className="p-4">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Категория</label>
+                  <Select value={category} onValueChange={(val) => val && setCategory(val)}>
+                    <SelectTrigger className="h-10 rounded-xl text-sm border-gray-200/80">
+                      <SelectValue placeholder="Все категории" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все категории</SelectItem>
+                      {PRODUCT_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                       ))}
-                    </div>
-                    <span>и выше</span>
-                  </button>
-                ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Price */}
+              <div className="p-4">
+                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Цена</label>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-gray-300 font-medium">₽</span>
+                    <Input
+                      type="number"
+                      placeholder="от"
+                      value={priceMin}
+                      onChange={(e) => setPriceMin(e.target.value)}
+                      className="pl-7 h-9 rounded-xl text-sm border-gray-200/80"
+                      min={0}
+                    />
+                  </div>
+                  <div className="w-3 h-px bg-gray-200" />
+                  <div className="relative flex-1">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-gray-300 font-medium">₽</span>
+                    <Input
+                      type="number"
+                      placeholder="до"
+                      value={priceMax}
+                      onChange={(e) => setPriceMax(e.target.value)}
+                      className="pl-7 h-9 rounded-xl text-sm border-gray-200/80"
+                      min={0}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="h-px bg-gray-200/80" />
-
-            {/* View mode */}
-            <div>
-              <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Вид</label>
-              <div className="flex items-center gap-1 s-card border s-border rounded-lg p-0.5">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={cn(
-                    "flex-1 p-1.5 rounded-md transition-all flex items-center justify-center gap-1 text-xs",
-                    viewMode === "grid" ? "bg-gray-900 text-white shadow-sm" : "s-muted hover:text-gray-600"
-                  )}
-                >
-                  <Grid3X3 className="h-3.5 w-3.5" /> Сетка
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={cn(
-                    "flex-1 p-1.5 rounded-md transition-all flex items-center justify-center gap-1 text-xs",
-                    viewMode === "list" ? "bg-gray-900 text-white shadow-sm" : "s-muted hover:text-gray-600"
-                  )}
-                >
-                  <LayoutGrid className="h-3.5 w-3.5" /> Список
-                </button>
-              </div>
-            </div>
-
-            {/* Card style */}
-            <div>
-              <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Стиль карточек</label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {(
-                  [
-                    { key: "standard", label: "Стандарт" },
-                    { key: "compact", label: "Компакт" },
-                    { key: "elegant", label: "Элегант" },
-                    { key: "minimal", label: "Минимал" },
-                  ] as const
-                ).map((s) => (
-                  <button
-                    key={s.key}
-                    onClick={() => setCardStyle(s.key)}
+              {/* In stock */}
+              <div className="px-4 py-3.5">
+                <label className="flex items-center gap-3 cursor-pointer select-none group/check">
+                  <div
                     className={cn(
-                      "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border",
-                      cardStyle === s.key
-                        ? "border-gray-900 bg-gray-900 text-white"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                      "h-5 w-5 rounded-lg border-2 flex items-center justify-center transition-all",
+                      inStockOnly ? "border-transparent shadow-sm" : "border-gray-300 group-hover/check:border-gray-400"
                     )}
+                    style={inStockOnly ? { backgroundColor: primaryColor } : undefined}
+                    onClick={() => setInStockOnly(!inStockOnly)}
                   >
-                    {s.label}
+                    {inStockOnly && <Check className="h-3 w-3 text-white" />}
+                  </div>
+                  <span className="text-sm text-gray-700 font-medium">Только в наличии</span>
+                </label>
+              </div>
+
+              {/* Rating */}
+              <div className="p-4">
+                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Рейтинг</label>
+                <div className="space-y-0.5">
+                  {[4, 3, 2, 1].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setMinRating(minRating === r ? 0 : r)}
+                      className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all",
+                        minRating === r
+                          ? "font-semibold"
+                          : "text-gray-500 hover:bg-gray-50"
+                      )}
+                      style={minRating === r ? { backgroundColor: primaryColor + '15', color: primaryColor } : undefined}
+                    >
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className="h-3.5 w-3.5" fill={s <= r ? "#facc15" : "none"} stroke={s <= r ? "#facc15" : "#d1d5db"} />
+                        ))}
+                      </div>
+                      <span className="text-xs">и выше</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* View options card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
+              {/* View mode */}
+              <div>
+                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Отображение</label>
+                <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={cn(
+                      "flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-all",
+                      viewMode === "grid" ? "shadow-sm text-white" : "text-gray-500 hover:text-gray-700"
+                    )}
+                    style={viewMode === "grid" ? { backgroundColor: primaryColor } : undefined}
+                  >
+                    <Grid3X3 className="h-3.5 w-3.5" /> Сетка
                   </button>
-                ))}
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={cn(
+                      "flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-all",
+                      viewMode === "list" ? "shadow-sm text-white" : "text-gray-500 hover:text-gray-700"
+                    )}
+                    style={viewMode === "list" ? { backgroundColor: primaryColor } : undefined}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5" /> Список
+                  </button>
+                </div>
+              </div>
+
+              {/* Card style */}
+              <div>
+                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Стиль карточек</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(
+                    [
+                      { key: "standard", label: "Стандарт" },
+                      { key: "compact", label: "Компакт" },
+                      { key: "elegant", label: "Элегант" },
+                      { key: "minimal", label: "Минимал" },
+                    ] as const
+                  ).map((s) => (
+                    <button
+                      key={s.key}
+                      onClick={() => setCardStyle(s.key)}
+                      className={cn(
+                        "px-3 py-2 rounded-xl text-xs font-medium transition-all border",
+                        cardStyle === s.key
+                          ? "border-transparent shadow-sm text-white"
+                          : "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                      )}
+                      style={cardStyle === s.key ? { backgroundColor: primaryColor } : undefined}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -343,9 +365,10 @@ export default function StoreFrontPage({
                   setMinRating(0);
                   setSearch("");
                 }}
-                className="w-full text-xs text-center py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
+                className="w-full text-xs text-center py-2.5 rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 shadow-sm transition-all flex items-center justify-center gap-1.5"
               >
-                Сбросить все фильтры
+                <X className="h-3 w-3" />
+                Сбросить фильтры ({activeFilterCount})
               </button>
             )}
           </div>
@@ -355,17 +378,17 @@ export default function StoreFrontPage({
         <div className="lg:hidden w-full space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 s-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Поиск..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10 rounded-xl s-card border-gray-200 shadow-sm text-sm"
+                className="pl-9 h-10 rounded-xl bg-white border-gray-200/80 shadow-sm text-sm placeholder:text-gray-300"
               />
             </div>
             <Select value={sort} onValueChange={(val) => val && setSort(val)}>
-              <SelectTrigger className="w-40 h-10 rounded-xl s-card shadow-sm text-sm">
-                <ArrowUpDown className="h-3.5 w-3.5 mr-1 s-muted" />
+              <SelectTrigger className="w-40 h-10 rounded-xl bg-white shadow-sm text-sm border-gray-200/80">
+                <ArrowUpDown className="h-3.5 w-3.5 mr-1 text-gray-400" />
                 <SelectValue placeholder="Сорт." />
               </SelectTrigger>
               <SelectContent>
@@ -379,12 +402,16 @@ export default function StoreFrontPage({
             <Button
               variant="outline"
               size="icon"
-              className={cn("h-10 w-10 rounded-xl shrink-0 relative", activeFilterCount > 0 && "border-gray-900")}
+              className="h-10 w-10 rounded-xl shrink-0 relative"
+              style={activeFilterCount > 0 ? { borderColor: primaryColor } : undefined}
               onClick={() => setSidebarOpen(true)}
             >
               <SlidersHorizontal className="h-4 w-4" />
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-900 text-white text-[9px] font-bold flex items-center justify-center">
+                <span
+                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+                  style={{ backgroundColor: primaryColor }}
+                >
                   {activeFilterCount}
                 </span>
               )}
@@ -395,25 +422,25 @@ export default function StoreFrontPage({
           {activeFilterCount > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {category !== "all" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-[11px] font-medium text-gray-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white" style={{ backgroundColor: primaryColor }}>
                   {category}
                   <button onClick={() => setCategory("all")}><X className="h-3 w-3" /></button>
                 </span>
               )}
               {(priceMin || priceMax) && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-[11px] font-medium text-gray-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white" style={{ backgroundColor: primaryColor }}>
                   {priceMin || "0"}–{priceMax || "∞"} ₽
                   <button onClick={() => { setPriceMin(""); setPriceMax(""); }}><X className="h-3 w-3" /></button>
                 </span>
               )}
               {inStockOnly && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-[11px] font-medium text-gray-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white" style={{ backgroundColor: primaryColor }}>
                   В наличии
                   <button onClick={() => setInStockOnly(false)}><X className="h-3 w-3" /></button>
                 </span>
               )}
               {minRating > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-[11px] font-medium text-gray-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white" style={{ backgroundColor: primaryColor }}>
                   ★ {minRating}+
                   <button onClick={() => setMinRating(0)}><X className="h-3 w-3" /></button>
                 </span>
@@ -425,21 +452,26 @@ export default function StoreFrontPage({
         {/* ── Mobile sidebar drawer ── */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => setSidebarOpen(false)} />
             <aside className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white overflow-y-auto animate-in slide-in-from-right duration-200 shadow-2xl">
-              <div className="flex items-center justify-between p-4 border-b">
-                <h3 className="font-semibold s-text">Фильтры</h3>
-                <button onClick={() => setSidebarOpen(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                  <X className="h-5 w-5" />
+              <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Фильтры</h3>
+                  {activeFilterCount > 0 && (
+                    <p className="text-[11px] text-gray-400 mt-0.5">Активных: {activeFilterCount}</p>
+                  )}
+                </div>
+                <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                  <X className="h-5 w-5 text-gray-400" />
                 </button>
               </div>
               <div className="p-4 space-y-5">
                 {/* Category */}
                 {!(storeCategories?.length) && (
                   <div>
-                    <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Категория</label>
+                    <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Категория</label>
                     <Select value={category} onValueChange={(val) => val && setCategory(val)}>
-                      <SelectTrigger className="h-10 rounded-xl text-sm">
+                      <SelectTrigger className="h-10 rounded-xl text-sm border-gray-200/80">
                         <SelectValue placeholder="Все" />
                       </SelectTrigger>
                       <SelectContent>
@@ -454,44 +486,52 @@ export default function StoreFrontPage({
 
                 {/* Price */}
                 <div>
-                  <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Цена, ₽</label>
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Цена</label>
                   <div className="flex items-center gap-2">
-                    <Input type="number" placeholder="от" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} className="h-9 rounded-xl text-sm" min={0} />
-                    <span className="text-gray-300 text-sm">—</span>
-                    <Input type="number" placeholder="до" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} className="h-9 rounded-xl text-sm" min={0} />
+                    <div className="relative flex-1">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-gray-300 font-medium">₽</span>
+                      <Input type="number" placeholder="от" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} className="pl-7 h-9 rounded-xl text-sm border-gray-200/80" min={0} />
+                    </div>
+                    <div className="w-3 h-px bg-gray-200" />
+                    <div className="relative flex-1">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-gray-300 font-medium">₽</span>
+                      <Input type="number" placeholder="до" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} className="pl-7 h-9 rounded-xl text-sm border-gray-200/80" min={0} />
+                    </div>
                   </div>
                 </div>
 
                 {/* In stock */}
-                <label className="flex items-center gap-2.5 cursor-pointer">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
                   <div
-                    className={cn("h-[18px] w-[18px] rounded-md border-2 flex items-center justify-center transition-all", inStockOnly ? "border-gray-900 bg-gray-900" : "border-gray-300")}
+                    className={cn("h-5 w-5 rounded-lg border-2 flex items-center justify-center transition-all", inStockOnly ? "border-transparent shadow-sm" : "border-gray-300")}
+                    style={inStockOnly ? { backgroundColor: primaryColor } : undefined}
                     onClick={() => setInStockOnly(!inStockOnly)}
                   >
                     {inStockOnly && <Check className="h-3 w-3 text-white" />}
                   </div>
-                  <span className="text-sm s-text">Только в наличии</span>
+                  <span className="text-sm text-gray-700 font-medium">Только в наличии</span>
                 </label>
 
                 {/* Rating */}
                 <div>
-                  <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Рейтинг</label>
-                  <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Рейтинг</label>
+                  <div className="space-y-0.5">
                     {[4, 3, 2, 1].map((r) => (
                       <button
                         key={r}
                         onClick={() => setMinRating(minRating === r ? 0 : r)}
                         className={cn(
-                          "flex items-center gap-1.5 w-full px-3 py-1.5 rounded-lg text-sm transition-all",
-                          minRating === r ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"
+                          "flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm transition-all",
+                          minRating === r ? "font-semibold" : "text-gray-500 hover:bg-gray-50"
                         )}
+                        style={minRating === r ? { backgroundColor: primaryColor + '15', color: primaryColor } : undefined}
                       >
                         <div className="flex">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            <Star key={s} className="h-3 w-3" fill={s <= r ? "#facc15" : "none"} stroke={s <= r ? "#facc15" : "#d1d5db"} />
+                            <Star key={s} className="h-3.5 w-3.5" fill={s <= r ? "#facc15" : "none"} stroke={s <= r ? "#facc15" : "#d1d5db"} />
                           ))}
                         </div>
-                        <span>и выше</span>
+                        <span className="text-xs">и выше</span>
                       </button>
                     ))}
                   </div>
@@ -499,12 +539,12 @@ export default function StoreFrontPage({
 
                 {/* View */}
                 <div>
-                  <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Вид</label>
-                  <div className="flex gap-1 border s-border rounded-lg p-0.5">
-                    <button onClick={() => setViewMode("grid")} className={cn("flex-1 p-1.5 rounded-md flex items-center justify-center gap-1 text-xs transition-all", viewMode === "grid" ? "bg-gray-900 text-white" : "s-muted")}>
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Вид</label>
+                  <div className="flex gap-1 bg-gray-50 rounded-xl p-1">
+                    <button onClick={() => setViewMode("grid")} className={cn("flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-all", viewMode === "grid" ? "shadow-sm text-white" : "text-gray-500")} style={viewMode === "grid" ? { backgroundColor: primaryColor } : undefined}>
                       <Grid3X3 className="h-3.5 w-3.5" /> Сетка
                     </button>
-                    <button onClick={() => setViewMode("list")} className={cn("flex-1 p-1.5 rounded-md flex items-center justify-center gap-1 text-xs transition-all", viewMode === "list" ? "bg-gray-900 text-white" : "s-muted")}>
+                    <button onClick={() => setViewMode("list")} className={cn("flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-all", viewMode === "list" ? "shadow-sm text-white" : "text-gray-500")} style={viewMode === "list" ? { backgroundColor: primaryColor } : undefined}>
                       <LayoutGrid className="h-3.5 w-3.5" /> Список
                     </button>
                   </div>
@@ -512,10 +552,10 @@ export default function StoreFrontPage({
 
                 {/* Card style */}
                 <div>
-                  <label className="text-xs font-semibold s-muted uppercase tracking-wider mb-2 block">Стиль</label>
+                  <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5 block">Стиль</label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {([{ key: "standard", label: "Стандарт" }, { key: "compact", label: "Компакт" }, { key: "elegant", label: "Элегант" }, { key: "minimal", label: "Минимал" }] as const).map((s) => (
-                      <button key={s.key} onClick={() => setCardStyle(s.key)} className={cn("px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border", cardStyle === s.key ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-600 hover:border-gray-300")}>
+                      <button key={s.key} onClick={() => setCardStyle(s.key)} className={cn("px-3 py-2 rounded-xl text-xs font-medium transition-all border", cardStyle === s.key ? "border-transparent shadow-sm text-white" : "border-gray-200 text-gray-500 hover:border-gray-300")} style={cardStyle === s.key ? { backgroundColor: primaryColor } : undefined}>
                         {s.label}
                       </button>
                     ))}
@@ -534,7 +574,7 @@ export default function StoreFrontPage({
                   )}
                   <button
                     onClick={() => setSidebarOpen(false)}
-                    className="flex-1 text-xs py-2.5 rounded-xl text-white font-medium"
+                    className="flex-1 text-xs py-2.5 rounded-xl text-white font-medium shadow-sm"
                     style={{ backgroundColor: primaryColor }}
                   >
                     Показать результаты
@@ -596,7 +636,7 @@ export default function StoreFrontPage({
           ) : (
             <>
               <div className={cn(
-                "gap-4",
+                "gap-3 sm:gap-4",
                 viewMode === "grid"
                   ? effectiveCardStyle === "compact"
                     ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
@@ -640,7 +680,7 @@ export default function StoreFrontPage({
                 <div className="flex justify-center pt-4">
                   <Button
                     variant="outline"
-                    className="rounded-xl px-8 h-11 shadow-sm"
+                    className="rounded-xl px-6 sm:px-8 h-10 sm:h-11 shadow-sm text-sm"
                     onClick={() => setVisibleCount((c) => c + ITEMS_PER_PAGE)}
                   >
                     Показать ещё ({filteredProducts.length - visibleCount})
@@ -676,7 +716,7 @@ export default function StoreFrontPage({
         <div className="space-y-4 border-t s-border pt-8">
           <div className="flex items-center gap-2.5">
             <Clock className="h-5 w-5 s-muted" />
-            <h2 className="text-lg font-bold s-text">Недавно просмотренные</h2>
+            <h2 className="text-base sm:text-lg font-bold s-text">Недавно просмотренные</h2>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
             {viewedItems.slice(0, 8).map((item) => (
@@ -1091,80 +1131,148 @@ function ProductListItem({
   );
 }
 
-function BannerSlider({
-  banners,
-}: {
-  banners: { id: string; image_url: string; link: string; title: string }[];
-}) {
-  const [current, setCurrent] = useState(0);
-
-  const next = useCallback(() => {
-    setCurrent((c) => (c + 1) % banners.length);
-  }, [banners.length]);
-
-  const prev = () => {
-    setCurrent((c) => (c - 1 + banners.length) % banners.length);
-  };
+/* ─── Stories Row ─── */
+function StoriesRow({ stories, primaryColor }: { stories: any[]; primaryColor: string }) {
+  const [activeStory, setActiveStory] = useState<number | null>(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const timer = setInterval(next, 5000);
-    return () => clearInterval(timer);
-  }, [banners.length, next]);
-
-  const banner = banners[current];
-  const Wrapper = banner.link
-    ? ({ children }: { children: React.ReactNode }) => (
-        <a href={banner.link} className="block">
-          {children}
-        </a>
-      )
-    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+    if (activeStory === null) return;
+    setProgress(0);
+    const start = Date.now();
+    const duration = 5000;
+    const tick = () => {
+      const elapsed = Date.now() - start;
+      const p = Math.min(elapsed / duration, 1);
+      setProgress(p);
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        // Auto-advance or close
+        if (activeStory < stories.length - 1) {
+          setActiveStory(activeStory + 1);
+        } else {
+          setActiveStory(null);
+        }
+      }
+    };
+    const raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [activeStory, stories.length]);
 
   return (
-    <div className="relative rounded-xl overflow-hidden group">
-      <Wrapper>
-        <img
-          src={banner.image_url}
-          alt={banner.title}
-          className="w-full h-48 md:h-64 object-cover transition-all duration-500"
-        />
-        {banner.title && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-            <p className="text-white font-semibold text-lg">{banner.title}</p>
-          </div>
-        )}
-      </Wrapper>
-      {banners.length > 1 && (
-        <>
+    <>
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-thin px-0.5">
+        {stories.map((story: any, i: number) => (
           <button
-            onClick={prev}
-            aria-label="Предыдущий баннер"
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+            key={story.id}
+            onClick={() => setActiveStory(i)}
+            className="shrink-0 flex flex-col items-center gap-1.5 group"
           >
-            <ChevronLeft className="h-5 w-5" />
+            {/* Mobile: circle / Desktop: rounded square */}
+            <div
+              className="p-[3px] rounded-full lg:rounded-2xl"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88, ${primaryColor}44)` }}
+            >
+              <div className="p-[2px] rounded-full lg:rounded-[13px] bg-white">
+                <img
+                  src={story.image_url}
+                  alt={story.title || "Story"}
+                  className="h-16 w-16 sm:h-[72px] sm:w-[72px] lg:h-24 lg:w-24 rounded-full lg:rounded-xl object-cover group-hover:scale-105 transition-transform duration-200"
+                />
+              </div>
+            </div>
+            {story.title && (
+              <span className="text-[10px] sm:text-[11px] font-medium s-text text-center line-clamp-1 max-w-[68px] sm:max-w-[76px] lg:max-w-[96px]">
+                {story.title}
+              </span>
+            )}
           </button>
-          <button
-            onClick={next}
-            aria-label="Следующий баннер"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {banners.map((_, i) => (
+        ))}
+      </div>
+
+      {/* Fullscreen story viewer */}
+      {activeStory !== null && stories[activeStory] && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center" onClick={() => setActiveStory(null)}>
+          <div className="relative w-full h-full max-w-lg mx-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Progress bars */}
+            <div className="absolute top-3 left-3 right-3 z-20 flex gap-1.5">
+              {stories.map((_: any, i: number) => (
+                <div key={i} className="flex-1 h-0.5 rounded-full bg-white/30 overflow-hidden">
+                  <div
+                    className="h-full bg-white rounded-full transition-none"
+                    style={{
+                      width: i < activeStory ? "100%" : i === activeStory ? `${progress * 100}%` : "0%"
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Close */}
+            <button
+              onClick={() => setActiveStory(null)}
+              className="absolute top-8 right-3 z-20 p-2 rounded-full bg-black/30 text-white backdrop-blur-sm"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Image */}
+            <img
+              src={stories[activeStory].image_url}
+              alt={stories[activeStory].title || "Story"}
+              className="w-full h-full object-contain"
+            />
+
+            {/* Gradient overlay for text */}
+            {stories[activeStory].gradient_color && (
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${stories[activeStory].gradient_color}, transparent 50%)` }} />
+            )}
+
+            {/* Content overlay */}
+            {(stories[activeStory].title || stories[activeStory].description || stories[activeStory].button_text) && (
+              <div className="absolute bottom-0 left-0 right-0 p-6 pb-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                {stories[activeStory].title && (
+                  <h3 className="text-white text-xl font-bold drop-shadow-lg">{stories[activeStory].title}</h3>
+                )}
+                {stories[activeStory].description && (
+                  <p className="text-white/80 text-sm mt-1.5 line-clamp-3">{stories[activeStory].description}</p>
+                )}
+                {stories[activeStory].button_text && stories[activeStory].link && (
+                  <a
+                    href={stories[activeStory].link}
+                    className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg"
+                    style={{ backgroundColor: primaryColor }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {stories[activeStory].button_text}
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* Tap zones */}
+            <div className="absolute inset-0 z-10 flex">
               <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`h-2 rounded-full transition-all ${
-                  i === current ? "w-6 s-card" : "w-2 bg-white/50"
-                }`}
+                className="w-1/3 h-full"
+                onClick={() => setActiveStory(Math.max(0, activeStory - 1))}
+                aria-label="Назад"
               />
-            ))}
+              <div className="w-1/3" />
+              <button
+                className="w-1/3 h-full"
+                onClick={() => {
+                  if (activeStory < stories.length - 1) setActiveStory(activeStory + 1);
+                  else setActiveStory(null);
+                }}
+                aria-label="Вперёд"
+              />
+            </div>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
