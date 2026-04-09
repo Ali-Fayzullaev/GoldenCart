@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -60,8 +61,10 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-amber-50 to-white p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-amber-600">
-            🛒 GoldenCart
+          <Link href="/" className="inline-flex items-center gap-2">
+            <Image src="/icons/light-logo.png" alt="GoldenCart" width={44} height={44} className="dark:hidden" />
+            <Image src="/icons/dark-logo.png" alt="GoldenCart" width={44} height={44} className="hidden dark:block" />
+            <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">GoldenCart</span>
           </Link>
           <h1 className="text-2xl font-bold mt-4">Создайте аккаунт продавца</h1>
           <p className="text-gray-500 mt-1">

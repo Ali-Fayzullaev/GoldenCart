@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingBag, Palette, Share2, Shield, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,8 +9,10 @@ export default function LandingPage() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-amber-600">
-            🛒 GoldenCart
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/icons/light-logo.png" alt="GoldenCart" width={36} height={36} className="dark:hidden" />
+            <Image src="/icons/dark-logo.png" alt="GoldenCart" width={36} height={36} className="hidden dark:block" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">GoldenCart</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/login">

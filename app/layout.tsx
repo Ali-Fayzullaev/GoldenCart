@@ -17,7 +17,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "GoldenCart — Создайте свой интернет-магазин",
-  description: "SaaS-платформа для создания интернет-магазинов. Регистрируйтесь, настраивайте дизайн, добавляйте товары и делитесь ссылкой с покупателями.",
+  description:
+    "SaaS-платформа для создания интернет-магазинов. Регистрируйтесь, настраивайте дизайн, добавляйте товары и делитесь ссылкой с покупателями.",
+  icons: {
+    icon: "/icons/favicon.png",
+    apple: "/icons/apple-touch.png",
+  },
+  openGraph: {
+    title: "GoldenCart — Создайте свой интернет-магазин",
+    description:
+      "SaaS-платформа для создания интернет-магазинов. Регистрируйтесь, настраивайте дизайн, добавляйте товары и делитесь ссылкой с покупателями.",
+    images: [{ url: "/icons/og-img-1200-630.png", width: 1200, height: 630 }],
+    type: "website",
+  },
 };
 
 export default function RootLayout({

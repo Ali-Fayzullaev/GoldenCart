@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -121,8 +122,10 @@ export default function DashboardLayout({
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Link href="/" className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-          ✦ GoldenCart
+        <Link href="/" className="flex items-center gap-1.5">
+          <Image src="/icons/light-logo.png" alt="GoldenCart" width={28} height={28} className="dark:hidden" />
+          <Image src="/icons/dark-logo.png" alt="GoldenCart" width={28} height={28} className="hidden dark:block" />
+          <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">GoldenCart</span>
         </Link>
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -138,8 +141,10 @@ export default function DashboardLayout({
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-72 bg-card flex flex-col border-r border-border animate-in slide-in-from-left duration-200">
             <div className="flex items-center justify-between px-3 h-14 border-b border-border">
-              <Link href="/" className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">
-                ✦ GoldenCart
+              <Link href="/" className="flex items-center gap-1.5">
+                <Image src="/icons/light-logo.png" alt="GoldenCart" width={28} height={28} className="dark:hidden" />
+                <Image src="/icons/dark-logo.png" alt="GoldenCart" width={28} height={28} className="hidden dark:block" />
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">GoldenCart</span>
               </Link>
               <button
                 onClick={() => setMobileOpen(false)}
@@ -226,8 +231,10 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex items-center justify-between px-3 h-14 border-b border-border">
           {!collapsed && (
-            <Link href="/" className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">
-              ✦ GoldenCart
+            <Link href="/" className="flex items-center gap-1.5">
+              <Image src="/icons/light-logo.png" alt="GoldenCart" width={28} height={28} className="dark:hidden" />
+              <Image src="/icons/dark-logo.png" alt="GoldenCart" width={28} height={28} className="hidden dark:block" />
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">GoldenCart</span>
             </Link>
           )}
           <button
