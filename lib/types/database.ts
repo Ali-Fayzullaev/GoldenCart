@@ -59,6 +59,8 @@ export type StoreCustomer = {
 export type ProductVariantOption = {
   name: string;
   values: string[];
+  prices?: Record<string, number>;        // value → своя цена (переопределяет базовую)
+  compare_prices?: Record<string, number>; // value → старая цена (зачёркнутая)
 };
 
 export type Product = {
@@ -67,10 +69,13 @@ export type Product = {
   name: string;
   description: string;
   price: number;
+  compare_price: number | null;
   stock: number;
   images: string[];
   category: string;
   variants: ProductVariantOption[];
+  weight: string | null;
+  sku: string | null;
   is_active: boolean;
   created_at: string;
 };

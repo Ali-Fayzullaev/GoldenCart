@@ -153,6 +153,9 @@ export default function StoreManagementPage() {
       {/* Telegram уведомления */}
       {store && <TelegramSettings storeId={store.id} currentChatId={store.telegram_chat_id} />}
 
+      {/* Email уведомления */}
+      {store && <EmailNotificationSettings contactEmail={store.contact_email} />}
+
       {/* Скидка на первую покупку */}
       {store && (
         <FirstOrderDiscountSettings
@@ -475,6 +478,125 @@ function LowStockThresholdSettings({
       >
         {updateStore.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Сохранить
+      </Button>
+    </div>
+  );
+}
+
+function EmailNotificationSettings({ contactEmail }: { contactEmail: string | null }) {
+  const hasResend = true; // Will check server-side
+  const [testSending, setTestSending] = useState(false);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+
+  const handleTestEmail = async () => {
+    if (!contactEmail) {
+      toast.error("Укажите контактный email выше");
+      return;
+    }
+    setTestSending(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: contactEmail,
+          store_name: "Тестовый магазин",
+          subject: "Тестовое уведомление GoldenCart",
+          type: "new_order",
+          order_id: "test-1234-5678-abcd",
+          total: "1 500 ₽",
+          items: [
+            { name: "Тестовый товар", qty: 2, price: "750 ₽" },
+            { name: "Другой товар", qty: 1, price: "0 ₽" },
+          ],
+          address: "Тестовый адрес доставки",
+          phone: "+7 (999) 123-45-67",
+        }),
+      });
+      if (res.ok) {
+        setTestResult("success");
+        toast.success("Тестовое письмо отправлено!");
+      } else {
+        const data = await res.json().catch(() => ({ error: "Неизвестная ошибка" }));
+        setTestResult("error");
+        toast.error(data.error || "Ошибка отправки");
+      }
+    } catch {
+      setTestResult("error");
+      toast.error("Ошибка подключения к серверу");
+    } finally {
+      setTestSending(false);
+    }
+  };
+
+  return (
+    <div className="bg-card rounded-xl border p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-emerald-50 rounded-lg">
+          <Send className="h-5 w-5 text-emerald-500" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Email-уведомления</h2>
+          <p className="text-sm text-muted-foreground">
+            Получайте уведомления о заказах на email
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-secondary/30">
+          <div className="flex-1">
+            <p className="text-sm font-medium">Новые заказы</p>
+            <p className="text-xs text-muted-foreground">
+              Красивое HTML-письмо с деталями заказа
+            </p>
+          </div>
+          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+        </div>
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-secondary/30">
+          <div className="flex-1">
+            <p className="text-sm font-medium">Изменение статуса</p>
+            <p className="text-xs text-muted-foreground">
+              При обновлении статуса заказа в панели
+            </p>
+          </div>
+          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+        </div>
+      </div>
+
+      {contactEmail ? (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Отправка на:</span>
+          <span className="font-medium">{contactEmail}</span>
+          <span className="text-xs text-muted-foreground">(контактный email магазина)</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+          <AlertCircle className="h-4 w-4 text-yellow-600 shrink-0" />
+          <p className="text-sm text-yellow-700">
+            Укажите контактный email в настройках магазина выше
+          </p>
+        </div>
+      )}
+
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleTestEmail}
+        disabled={testSending || !contactEmail}
+        className="w-full"
+      >
+        {testSending ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : testResult === "success" ? (
+          <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
+        ) : testResult === "error" ? (
+          <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
+        ) : (
+          <Send className="mr-2 h-4 w-4" />
+        )}
+        Отправить тестовое письмо
       </Button>
     </div>
   );

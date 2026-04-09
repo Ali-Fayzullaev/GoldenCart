@@ -44,12 +44,49 @@ export default function OrdersPage() {
 
   const handleStatusChange = async (orderId: string, status: string | null) => {
     if (!status) return;
+    const order = orders?.find((o) => o.id === orderId);
+    const oldStatus = order?.status || "pending";
     try {
       await updateStatus.mutateAsync({
         orderId,
         status: status as Order["status"],
       });
       toast.success("Статус обновлён");
+
+      // Telegram notification about status change (fire & forget)
+      if (store?.telegram_chat_id && order) {
+        fetch("/api/telegram", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "status_change",
+            chat_id: store.telegram_chat_id,
+            store_name: store.name,
+            order_id: orderId,
+            old_status: oldStatus,
+            new_status: status,
+            total: formatPrice(order.total_amount),
+          }),
+        }).catch(() => {});
+      }
+
+      // Email notification about status change (fire & forget)
+      if (store?.contact_email && order) {
+        fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: store.contact_email,
+            store_name: store.name,
+            subject: `Заказ ${orderId.slice(0, 8)} — статус обновлён`,
+            type: "status_change",
+            order_id: orderId,
+            old_status: oldStatus,
+            new_status: status,
+            total: formatPrice(order.total_amount),
+          }),
+        }).catch(() => {});
+      }
     } catch {
       toast.error("Ошибка обновления");
     }

@@ -1,10 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types/database";
 
 const supabase = createClient();
 
 export function useProfile() {
+  const queryClient = useQueryClient();
+
+  // Invalidate profile cache when auth state changes (login/logout)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    });
+    return () => subscription.unsubscribe();
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ["profile"],
     queryFn: async () => {

@@ -19,9 +19,15 @@ export const metadata: Metadata = {
   title: "GoldenCart — Создайте свой интернет-магазин",
   description:
     "SaaS-платформа для создания интернет-магазинов. Регистрируйтесь, настраивайте дизайн, добавляйте товары и делитесь ссылкой с покупателями.",
+  manifest: "/manifest.json",
   icons: {
     icon: "/icons/favicon.png",
     apple: "/icons/apple-touch.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
   },
   openGraph: {
     title: "GoldenCart — Создайте свой интернет-магазин",
@@ -43,11 +49,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <meta name="theme-color" content="#f59e0b" />
+      </head>
       <body className="min-h-full flex flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}`
+          }}
+        />
         <ThemeProvider>
           <QueryProvider>
             {children}
-            <Toaster richColors position="top-right" />
+            <Toaster richColors position="top-center" />
           </QueryProvider>
         </ThemeProvider>
       </body>

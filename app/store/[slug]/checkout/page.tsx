@@ -151,15 +151,48 @@ export default function CheckoutPage({
 
       // Telegram-уведомление продавцу (fire & forget)
       if (store.telegram_chat_id) {
+        const selectedMethod = shippingMethods?.find((m) => m.id === selectedShipping);
         fetch("/api/telegram", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            type: "new_order",
             chat_id: store.telegram_chat_id,
             store_name: store.name,
             order_id: crypto.randomUUID(),
             total: formatPrice(finalTotal),
             items_count: items.length,
+            items: items.map((i) => ({
+              name: i.name,
+              qty: i.quantity,
+              price: formatPrice(i.price * i.quantity),
+            })),
+            address: input.shipping_address,
+            phone: input.phone,
+            discount: (discount + firstOrderDiscount) > 0 ? formatPrice(discount + firstOrderDiscount) : undefined,
+            promo_code: appliedPromo || undefined,
+            shipping: selectedMethod?.name,
+          }),
+        }).catch(() => {});
+      }
+
+      // Email-уведомление продавцу (fire & forget)
+      if (store.contact_email) {
+        fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: store.contact_email,
+            store_name: store.name,
+            subject: `Новый заказ в ${store.name}`,
+            type: "new_order",
+            order_id: crypto.randomUUID(),
+            total: formatPrice(finalTotal),
+            items: items.map((i) => ({
+              name: i.name,
+              qty: i.quantity,
+              price: formatPrice(i.price * i.quantity),
+            })),
             address: input.shipping_address,
             phone: input.phone,
           }),

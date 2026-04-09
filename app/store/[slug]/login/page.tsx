@@ -15,6 +15,7 @@ import {
 } from "@/lib/validations";
 import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function StoreLoginPage({
@@ -25,6 +26,7 @@ export default function StoreLoginPage({
   const { slug } = use(params);
   const { data: store } = useStoreBySlug(slug);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
@@ -64,6 +66,7 @@ export default function StoreLoginPage({
       }
 
       router.push(`/store/${slug}`);
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       router.refresh();
     } catch {
       toast.error("Ошибка входа");

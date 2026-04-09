@@ -104,7 +104,14 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: async (
-      input: ProductInput & { store_id: string; images: string[]; variants?: ProductVariantOption[] }
+      input: ProductInput & {
+        store_id: string;
+        images: string[];
+        variants?: ProductVariantOption[];
+        compare_price?: number | null;
+        weight?: string | null;
+        sku?: string | null;
+      }
     ) => {
       const { data, error } = await supabase
         .from("products")
@@ -116,6 +123,10 @@ export function useCreateProduct() {
           stock: input.stock,
           images: input.images,
           category: input.category,
+          variants: input.variants || [],
+          compare_price: input.compare_price ?? null,
+          weight: input.weight ?? null,
+          sku: input.sku ?? null,
         } as never)
         .select()
         .single();
@@ -136,11 +147,21 @@ export function useUpdateProduct() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { variants, ...rest } = updates;
       const { data, error } = await supabase
         .from("products")
-        .update(rest as never)
+        .update({
+          ...(updates.name !== undefined && { name: updates.name }),
+          ...(updates.description !== undefined && { description: updates.description }),
+          ...(updates.price !== undefined && { price: updates.price }),
+          ...(updates.stock !== undefined && { stock: updates.stock }),
+          ...(updates.images !== undefined && { images: updates.images }),
+          ...(updates.category !== undefined && { category: updates.category }),
+          ...(updates.variants !== undefined && { variants: updates.variants }),
+          ...(updates.is_active !== undefined && { is_active: updates.is_active }),
+          ...(updates.compare_price !== undefined && { compare_price: updates.compare_price }),
+          ...(updates.weight !== undefined && { weight: updates.weight }),
+          ...(updates.sku !== undefined && { sku: updates.sku }),
+        } as never)
         .eq("id", id)
         .select()
         .single();

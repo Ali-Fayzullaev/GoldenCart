@@ -366,9 +366,11 @@ export default function DesignPage() {
 
           <div className="space-y-2">
             <Label>Приветственный текст</Label>
+            <p className="text-xs text-muted-foreground">Отображается на главной странице магазина под сторис</p>
             <Textarea
               value={welcomeText}
               onChange={(e) => setWelcomeText(e.target.value)}
+              placeholder="Добро пожаловать в наш магазин! Здесь вы найдёте..."
               rows={3}
             />
           </div>

@@ -18,7 +18,6 @@ import {
   FolderTree,
   Truck,
   MessageSquare,
-  BookOpen,
   ChevronDown,
   PanelLeftClose,
   PanelLeft,
@@ -65,7 +64,6 @@ const navGroups: NavGroup[] = [
   {
     label: "Контент",
     items: [
-      { href: "/dashboard/blog", label: "Блог", icon: BookOpen },
       { href: "/dashboard/banners", label: "Баннеры", icon: ImageIcon },
       { href: "/dashboard/reviews", label: "Отзывы", icon: MessageSquare },
     ],

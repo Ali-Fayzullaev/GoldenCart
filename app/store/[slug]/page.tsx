@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, ShoppingCart, Star, SlidersHorizontal, Heart, Clock, GitCompareArrows, ChevronLeft, ChevronRight, Eye, X, Minus, Plus, ArrowUpDown, Grid3X3, LayoutGrid, Check, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -598,13 +598,14 @@ export default function StoreFrontPage({
 
           {/* Products grid */}
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({ length: 9 }).map((_, i) => (
                 <div key={i} className="rounded-2xl s-card border s-border overflow-hidden animate-pulse">
-                  <div className="h-52 bg-gray-100" />
-                  <div className="p-4 space-y-3">
-                    <div className="h-4 bg-gray-100 rounded-lg w-3/4" />
-                    <div className="h-4 bg-gray-100 rounded-lg w-1/2" />
+                  <div className="aspect-square bg-gray-100" />
+                  <div className="p-3 sm:p-4 space-y-2.5">
+                    <div className="h-4 bg-gray-100 rounded-lg" style={{ width: `${60 + (i % 3) * 15}%` }} />
+                    <div className="h-3.5 bg-gray-100 rounded-lg w-2/5" />
+                    <div className="h-5 bg-gray-100 rounded-lg w-1/3" />
                     <div className="h-9 bg-gray-100 rounded-xl" />
                   </div>
                 </div>
@@ -612,7 +613,19 @@ export default function StoreFrontPage({
             </div>
           ) : !filteredProducts?.length ? (
             <div className="text-center py-20">
-              <Package className="h-16 w-16 text-gray-300/60 mx-auto mb-4" />
+              {/* Empty state illustration */}
+              <div className="mx-auto mb-6 w-40 h-40 relative">
+                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  <circle cx="100" cy="100" r="80" fill="currentColor" className="text-gray-50" />
+                  <circle cx="90" cy="90" r="35" stroke="currentColor" strokeWidth="6" strokeLinecap="round" className="text-gray-200" />
+                  <line x1="115" y1="115" x2="145" y2="145" stroke="currentColor" strokeWidth="6" strokeLinecap="round" className="text-gray-200" />
+                  <line x1="78" y1="82" x2="102" y2="98" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-gray-300/60" />
+                  <line x1="102" y1="82" x2="78" y2="98" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-gray-300/60" />
+                  <circle cx="155" cy="55" r="4" fill="currentColor" className="text-gray-100" />
+                  <circle cx="45" cy="135" r="6" fill="currentColor" className="text-gray-100" />
+                  <circle cx="160" cy="130" r="3" fill="currentColor" className="text-gray-100" />
+                </svg>
+              </div>
               <h3 className="text-lg font-semibold s-text mb-1">Ничего не найдено</h3>
               <p className="s-muted text-sm">Попробуйте изменить фильтры или поисковый запрос</p>
               {activeFilterCount > 0 && (
@@ -718,12 +731,12 @@ export default function StoreFrontPage({
             <Clock className="h-5 w-5 s-muted" />
             <h2 className="text-base sm:text-lg font-bold s-text">Недавно просмотренные</h2>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth scrollbar-thin">
             {viewedItems.slice(0, 8).map((item) => (
               <a
                 key={item.product_id}
                 href={`/store/${slug}/product/${item.product_id}`}
-                className="shrink-0 w-36 rounded-2xl border s-border s-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group/recent"
+                className="shrink-0 w-36 snap-start rounded-2xl border s-border s-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group/recent"
               >
                 {item.image ? (
                   <img src={item.image} alt={item.name} className="w-full h-28 object-cover group-hover/recent:scale-105 transition-transform duration-300" />
@@ -836,6 +849,9 @@ function ProductCard({
   cardStyle?: "standard" | "compact" | "elegant" | "minimal";
 }) {
   const addItem = useCartStore((s) => s.addItem);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const cartItems = useCartStore((s) => s.items);
+  const cartItem = cartItems.find((i) => i.product_id === product.id);
   const { data: profile } = useProfile();
   const addToWishlist = useAddToWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
@@ -903,16 +919,12 @@ function ProductCard({
         <button onClick={handleToggleWishlist} aria-label="Избранное" className="p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-colors">
           <Heart className="h-4 w-4" fill={isWishlisted ? "#ef4444" : "none"} stroke={isWishlisted ? "#ef4444" : "#6b7280"} />
         </button>
-        {!isCompact && (
-          <>
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView(); }} aria-label="Быстрый просмотр" className="p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-colors">
-              <Eye className="h-4 w-4 text-gray-600" />
-            </button>
-            <button onClick={handleToggleCompare} aria-label="Сравнить" className="p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-colors">
-              <GitCompareArrows className="h-4 w-4" stroke={isCompared ? "#3b82f6" : "#6b7280"} />
-            </button>
-          </>
-        )}
+        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onQuickView(); }} aria-label="Быстрый просмотр" className={cn("p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-colors", isCompact && "p-1.5")}>
+          <Eye className={cn(isCompact ? "h-3.5 w-3.5" : "h-4 w-4", "text-gray-600")} />
+        </button>
+        <button onClick={handleToggleCompare} aria-label="Сравнить" className={cn("p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-colors", isCompact && "p-1.5")}>
+          <GitCompareArrows className={isCompact ? "h-3.5 w-3.5" : "h-4 w-4"} stroke={isCompared ? "#3b82f6" : "#6b7280"} />
+        </button>
       </div>
       {/* Mobile wishlist */}
       <button onClick={handleToggleWishlist} aria-label="Избранное" className="absolute top-3 right-3 z-10 p-2 rounded-xl bg-white/90 backdrop-blur-sm shadow-md md:hidden">
@@ -962,11 +974,34 @@ function ProductCard({
         )}
 
         <div className={cn("flex items-end justify-between mt-auto", isCompact ? "pt-1" : "pt-2")}>
-          <span className={cn("font-bold", isCompact ? "text-sm" : isElegant ? "text-xl" : "text-lg")} style={{ color: primaryColor }}>
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className={cn("font-bold", isCompact ? "text-sm" : isElegant ? "text-xl" : "text-lg")} style={{ color: primaryColor }}>
+              {formatPrice(product.price)}
+            </span>
+            {product.compare_price != null && product.compare_price > product.price && (
+              <span className={cn("line-through text-gray-400", isCompact ? "text-xs" : "text-sm")}>
+                {formatPrice(product.compare_price)}
+              </span>
+            )}
+          </div>
           {product.stock > 0 ? (
-            isMinimal ? (
+            cartItem ? (
+              <div className={cn("flex items-center rounded-xl overflow-hidden", isCompact ? "" : "")} style={{ backgroundColor: primaryColor }}>
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateQuantity(product.id, cartItem.quantity - 1); }}
+                  className={cn("text-white hover:bg-white/20 transition-colors", isCompact ? "p-1.5" : "p-2")}
+                >
+                  <Minus className={isCompact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+                </button>
+                <span className={cn("text-white font-semibold min-w-[20px] text-center", isCompact ? "text-xs px-1" : "text-sm px-1.5")}>{cartItem.quantity}</span>
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem({ product_id: product.id, store_id: storeId, name: product.name, price: product.price, image: product.images[0] || null }); }}
+                  className={cn("text-white hover:bg-white/20 transition-colors", isCompact ? "p-1.5" : "p-2")}
+                >
+                  <Plus className={isCompact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+                </button>
+              </div>
+            ) : isMinimal ? (
               <button onClick={handleAdd} className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all hover:opacity-80" style={{ backgroundColor: primaryColor, color: "white" }}>
                 Купить
               </button>
@@ -1094,9 +1129,16 @@ function ProductListItem({
           )}
         </div>
         <div className="flex items-center justify-between mt-3">
-          <span className="text-lg font-bold" style={{ color: primaryColor }}>
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-bold" style={{ color: primaryColor }}>
+              {formatPrice(product.price)}
+            </span>
+            {product.compare_price != null && product.compare_price > product.price && (
+              <span className="text-sm line-through text-gray-400">
+                {formatPrice(product.compare_price)}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleToggleWishlist}
@@ -1135,20 +1177,44 @@ function ProductListItem({
 function StoriesRow({ stories, primaryColor }: { stories: any[]; primaryColor: string }) {
   const [activeStory, setActiveStory] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const cancelledRef = useRef(false);
+  const pausedRef = useRef(false);
+
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   useEffect(() => {
     if (activeStory === null) return;
+    cancelledRef.current = false;
+    setPaused(false);
+    pausedRef.current = false;
     setProgress(0);
-    const start = Date.now();
+
+    let startTime = Date.now();
+    let pausedTotal = 0;
+    let pauseBegin = 0;
     const duration = 5000;
+
     const tick = () => {
-      const elapsed = Date.now() - start;
+      if (cancelledRef.current) return;
+      if (pausedRef.current) {
+        if (pauseBegin === 0) pauseBegin = Date.now();
+        requestAnimationFrame(tick);
+        return;
+      }
+      if (pauseBegin > 0) {
+        pausedTotal += Date.now() - pauseBegin;
+        pauseBegin = 0;
+      }
+      const elapsed = Date.now() - startTime - pausedTotal;
       const p = Math.min(elapsed / duration, 1);
       setProgress(p);
       if (p < 1) {
         requestAnimationFrame(tick);
       } else {
-        // Auto-advance or close
+        if (cancelledRef.current) return;
         if (activeStory < stories.length - 1) {
           setActiveStory(activeStory + 1);
         } else {
@@ -1156,8 +1222,8 @@ function StoriesRow({ stories, primaryColor }: { stories: any[]; primaryColor: s
         }
       }
     };
-    const raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    requestAnimationFrame(tick);
+    return () => { cancelledRef.current = true; };
   }, [activeStory, stories.length]);
 
   return (
@@ -1259,7 +1325,11 @@ function StoriesRow({ stories, primaryColor }: { stories: any[]; primaryColor: s
                 onClick={() => setActiveStory(Math.max(0, activeStory - 1))}
                 aria-label="Назад"
               />
-              <div className="w-1/3" />
+              <button
+                className="w-1/3 h-full"
+                onClick={() => setPaused((p) => !p)}
+                aria-label={paused ? "Продолжить" : "Пауза"}
+              />
               <button
                 className="w-1/3 h-full"
                 onClick={() => {
@@ -1269,6 +1339,16 @@ function StoriesRow({ stories, primaryColor }: { stories: any[]; primaryColor: s
                 aria-label="Вперёд"
               />
             </div>
+
+            {/* Pause indicator */}
+            {paused && (
+              <div className="absolute inset-0 z-[11] flex items-center justify-center pointer-events-none">
+                <div className="flex gap-1.5 p-4 rounded-full bg-black/40 backdrop-blur-sm">
+                  <div className="w-1.5 h-6 bg-white rounded-full" />
+                  <div className="w-1.5 h-6 bg-white rounded-full" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1292,18 +1372,76 @@ function QuickViewModal({
   const addItem = useCartStore((s) => s.addItem);
   const { data: profile } = useProfile();
   const [qty, setQty] = useState(1);
+  const [selectedImg, setSelectedImg] = useState(0);
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const images = product.images.length > 0 ? product.images : [];
+
+  // Вычисляем эффективную цену на основе выбранных вариантов
+  const getEffectivePrice = (): number => {
+    for (const variant of product.variants || []) {
+      const sel = selectedVariants[variant.name];
+      if (sel && variant.prices?.[sel] != null) {
+        return variant.prices[sel];
+      }
+    }
+    return product.price;
+  };
+
+  const getEffectiveComparePrice = (): number | null => {
+    for (const variant of product.variants || []) {
+      const sel = selectedVariants[variant.name];
+      if (sel && variant.compare_prices?.[sel] != null) {
+        return variant.compare_prices[sel];
+      }
+    }
+    return product.compare_price ?? null;
+  };
+
+  const effectivePrice = getEffectivePrice();
+  const effectiveComparePrice = getEffectiveComparePrice();
+
+  // Keyboard Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  // Keyboard arrows for images
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") setSelectedImg((i) => Math.max(0, i - 1));
+      if (e.key === "ArrowRight") setSelectedImg((i) => Math.min(images.length - 1, i + 1));
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [images.length]);
 
   const handleAdd = () => {
     if (!profile || profile.role !== "customer") {
       toast.error("Войдите как покупатель");
       return;
     }
+    // Проверяем что все варианты выбраны
+    if (product.variants && product.variants.length > 0) {
+      const missing = product.variants.filter((v) => !selectedVariants[v.name]);
+      if (missing.length > 0) {
+        toast.error(`Выберите: ${missing.map((v) => v.name).join(", ")}`);
+        return;
+      }
+    }
+    const variantSuffix = Object.keys(selectedVariants).length > 0
+      ? ` (${Object.values(selectedVariants).join(", ")})`
+      : "";
     addItem(
       {
-        product_id: product.id,
+        product_id: product.id +
+          (Object.keys(selectedVariants).length > 0
+            ? ":" + Object.values(selectedVariants).sort().join(",")
+            : ""),
         store_id: storeId,
-        name: product.name,
-        price: product.price,
+        name: product.name + variantSuffix,
+        price: effectivePrice,
         image: product.images[0] || null,
       },
       qty
@@ -1315,94 +1453,213 @@ function QuickViewModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" />
 
-      {/* Modal */}
+      {/* Modal — wide horizontal layout on desktop */}
       <div
-        className="relative s-card rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
+        className="relative s-card rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Закрыть"
-          className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-white/90 hover:s-card shadow-md transition-colors backdrop-blur-sm"
+          className="absolute top-3 right-3 z-10 p-2 rounded-xl bg-white/90 hover:bg-white shadow-md transition-colors backdrop-blur-sm"
         >
           <X className="h-4 w-4" />
         </button>
 
-        {/* Image */}
-        {product.images[0] ? (
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-72 object-cover rounded-t-3xl"
-          />
-        ) : (
-          <div className="w-full h-72 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center rounded-t-3xl">
-            <Package className="h-12 w-12 text-gray-200" />
-          </div>
-        )}
-
-        <div className="p-6 space-y-4">
-          {/* Name + Price */}
-          <div>
-            <h2 className="text-xl font-bold s-text">{product.name}</h2>
-            <p className="text-2xl font-bold mt-1.5" style={{ color: primaryColor }}>
-              {formatPrice(product.price)}
-            </p>
-          </div>
-
-          {/* Description */}
-          {product.description && (
-            <p className="text-sm s-muted leading-relaxed line-clamp-4">{product.description}</p>
-          )}
-
-          {/* Stock */}
-          <p className={cn(
-            "text-sm font-medium",
-            product.stock > 0 ? "text-emerald-600" : "s-muted"
-          )}>
-            {product.stock > 0 ? `В наличии: ${product.stock} шт.` : "Нет в наличии"}
-          </p>
-
-          {/* Quantity + Add to cart */}
-          {product.stock > 0 && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center border s-border rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  aria-label="Уменьшить количество"
-                  className="p-2.5 s-hover transition-colors"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <span className="w-10 text-center font-semibold text-sm">{qty}</span>
-                <button
-                  onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
-                  aria-label="Увеличить количество"
-                  className="p-2.5 s-hover transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+        <div className="md:flex">
+          {/* Left: Image Gallery */}
+          <div className="md:w-1/2 relative">
+            {images.length > 0 ? (
+              <div className="relative group">
+                <img
+                  src={images[selectedImg]}
+                  alt={product.name}
+                  className="w-full aspect-square object-cover rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none"
+                />
+                {/* Nav arrows */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setSelectedImg((i) => Math.max(0, i - 1))}
+                      className={cn("absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 shadow-md backdrop-blur-sm transition-all hover:bg-white", selectedImg === 0 && "opacity-30 pointer-events-none")}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setSelectedImg((i) => Math.min(images.length - 1, i + 1))}
+                      className={cn("absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 shadow-md backdrop-blur-sm transition-all hover:bg-white", selectedImg === images.length - 1 && "opacity-30 pointer-events-none")}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                    {/* Dots */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {images.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setSelectedImg(i)}
+                          className={cn("w-2 h-2 rounded-full transition-all", i === selectedImg ? "bg-white scale-110 shadow" : "bg-white/50")}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              <Button
-                onClick={handleAdd}
-                className="flex-1 h-11 text-white rounded-xl hover:opacity-90 font-semibold shadow-md"
-                style={{ backgroundColor: primaryColor }}
-              >
-                В корзину — {formatPrice(product.price * qty)}
-              </Button>
-            </div>
-          )}
+            ) : (
+              <div className="w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
+                <Package className="h-16 w-16 text-gray-200" />
+              </div>
+            )}
+            {/* Thumbnails */}
+            {images.length > 1 && (
+              <div className="flex gap-2 p-3 overflow-x-auto">
+                {images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedImg(i)}
+                    className={cn("shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all", i === selectedImg ? "border-current opacity-100 shadow-sm" : "border-transparent opacity-60 hover:opacity-80")}
+                    style={i === selectedImg ? { borderColor: primaryColor } : {}}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-          {/* Link to full page */}
-          <a
-            href={`/store/${storeSlug}/product/${product.id}`}
-            className="block text-center text-sm font-medium s-muted hover:text-gray-700 transition-colors pt-1"
-          >
-            Подробнее о товаре →
-          </a>
+          {/* Right: Product Info */}
+          <div className="md:w-1/2 p-6 space-y-4 flex flex-col">
+            {/* Category badge */}
+            {product.category && (
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full s-muted w-fit" style={{ backgroundColor: primaryColor + "15", color: primaryColor }}>
+                {product.category}
+              </span>
+            )}
+
+            {/* Name + Price */}
+            <div>
+              <h2 className="text-xl font-bold s-text leading-tight">{product.name}</h2>
+              <div className="flex items-baseline gap-2 mt-2">
+                <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+                  {formatPrice(effectivePrice)}
+                </p>
+                {effectiveComparePrice != null && effectiveComparePrice > effectivePrice && (
+                  <p className="text-base line-through text-gray-400">
+                    {formatPrice(effectiveComparePrice)}
+                  </p>
+                )}
+              </div>
+              {product.sku && (
+                <p className="text-xs text-gray-400 mt-1 font-mono">Артикул: {product.sku}</p>
+              )}
+            </div>
+
+            {/* Description */}
+            {product.description && (
+              <p className="text-sm s-muted leading-relaxed line-clamp-4">{product.description}</p>
+            )}
+
+            {/* Variants */}
+            {product.variants && product.variants.length > 0 && (
+              <div className="space-y-3">
+                {product.variants.map((v) => (
+                  <div key={v.name}>
+                    <p className="text-xs font-semibold s-text mb-1.5">
+                      {v.name}
+                      {selectedVariants[v.name] && (
+                        <span className="text-gray-400 font-normal ml-1">: {selectedVariants[v.name]}</span>
+                      )}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {v.values.map((val) => {
+                        const variantPrice = v.prices?.[val];
+                        return (
+                          <button
+                            key={val}
+                            onClick={() => setSelectedVariants((prev) => ({ ...prev, [v.name]: val }))}
+                            className={cn("px-3 py-1.5 rounded-lg border text-xs font-medium transition-all",
+                              selectedVariants[v.name] === val
+                                ? "text-white shadow-sm"
+                                : "s-border s-text s-hover"
+                            )}
+                            style={selectedVariants[v.name] === val ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
+                          >
+                            {val}
+                            {variantPrice != null && (
+                              <span className="ml-1 opacity-80">{formatPrice(variantPrice)}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Stock badge */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full",
+                product.stock > 0
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-red-50 text-red-500"
+              )}>
+                <span className={cn("w-1.5 h-1.5 rounded-full", product.stock > 0 ? "bg-emerald-500" : "bg-red-400")} />
+                {product.stock > 0 ? `В наличии: ${product.stock} шт.` : "Нет в наличии"}
+              </span>
+              {product.weight && (
+                <span className="inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                  {product.weight}
+                </span>
+              )}
+            </div>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Quantity + Add to cart */}
+            {product.stock > 0 && (
+              <div className="space-y-3 pt-2 border-t s-border">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border s-border rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      aria-label="Уменьшить"
+                      className="p-2.5 s-hover transition-colors"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-10 text-center font-semibold text-sm">{qty}</span>
+                    <button
+                      onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                      aria-label="Увеличить"
+                      className="p-2.5 s-hover transition-colors"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <Button
+                    onClick={handleAdd}
+                    className="flex-1 h-11 text-white rounded-xl hover:opacity-90 font-semibold shadow-md"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    В корзину — {formatPrice(effectivePrice * qty)}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Link to full page */}
+            <a
+              href={`/store/${storeSlug}/product/${product.id}`}
+              className="block text-center text-sm font-medium s-muted hover:underline transition-colors"
+            >
+              Подробнее о товаре →
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -21,7 +21,6 @@ import { useStoreBySlug } from "@/lib/hooks/use-stores";
 import { useProfile } from "@/lib/hooks/use-profile";
 import { useCartStore } from "@/lib/store/cart-store";
 import { usePublicStorePages } from "@/lib/hooks/use-store-pages";
-import { usePublicBlogPosts } from "@/lib/hooks/use-blog-posts";
 import { createClient } from "@/lib/supabase/client";
 import type { StoreWithSettings } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
@@ -79,17 +78,23 @@ function StoreShell({
   const supabase = createClient();
   const cartItems = useCartStore((s) => s.items);
   const [cartCount, setCartCount] = useState(0);
+  const [cartBounce, setCartBounce] = useState(false);
+  const prevCartCountRef = useRef(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const { data: cmsPages } = usePublicStorePages(store.id);
-  const { data: blogPosts } = usePublicBlogPosts(store.id);
 
   useEffect(() => {
     const count = cartItems
       .filter((i) => i.store_id === store.id)
       .reduce((sum, i) => sum + i.quantity, 0);
+    if (count > prevCartCountRef.current) {
+      setCartBounce(true);
+      setTimeout(() => setCartBounce(false), 600);
+    }
+    prevCartCountRef.current = count;
     setCartCount(count);
   }, [cartItems, store.id]);
 
@@ -207,9 +212,6 @@ function StoreShell({
                 {p.title}
               </StoreNavLink>
             ))}
-            {blogPosts && blogPosts.length > 0 && (
-              <StoreNavLink href={`${baseUrl}/blog`} active={pathname.includes("/blog")}>Блог</StoreNavLink>
-            )}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all"
@@ -229,10 +231,10 @@ function StoreShell({
                 <Link href={`${baseUrl}/wishlist`} className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Избранное" aria-label="Избранное">
                   <Heart className="h-5 w-5" />
                 </Link>
-                <Link href={`${baseUrl}/cart`} className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all" title="Корзина" aria-label="Корзина">
+                <Link href={`${baseUrl}/cart`} className={`relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all ${cartBounce ? "animate-bounce" : ""}`} title="Корзина" aria-label="Корзина">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: primaryColor }}>
+                    <span className={`absolute -top-0.5 -right-0.5 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1 transition-transform ${cartBounce ? "scale-125" : "scale-100"}`} style={{ backgroundColor: primaryColor }}>
                       {cartCount}
                     </span>
                   )}
@@ -252,10 +254,10 @@ function StoreShell({
 
           {/* Mobile */}
           <div className="flex md:hidden items-center gap-2">
-            <Link href={`${baseUrl}/cart`} className="relative p-2 text-white" aria-label="Корзина">
+            <Link href={`${baseUrl}/cart`} className={`relative p-2 text-white ${cartBounce ? "animate-bounce" : ""}`} aria-label="Корзина">
               <ShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: primaryColor }}>
+                <span className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1 transition-transform ${cartBounce ? "scale-125" : "scale-100"}`} style={{ backgroundColor: primaryColor }}>
                   {cartCount}
                 </span>
               )}
@@ -274,9 +276,6 @@ function StoreShell({
               {cmsPages?.map((p) => (
                 <MobileLink key={p.id} href={`${baseUrl}/page/${p.slug}`}>{p.title}</MobileLink>
               ))}
-              {blogPosts && blogPosts.length > 0 && (
-                <MobileLink href={`${baseUrl}/blog`}>Блог</MobileLink>
-              )}
               {isLoggedIn && isCustomer ? (
                 <>
                   <div className="border-t border-white/10 my-2" />

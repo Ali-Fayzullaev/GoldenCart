@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ export default function ProductDetailClient({
   const addItem = useCartStore((s) => s.addItem);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const touchStartRef = useRef<number | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
   >({});
@@ -89,8 +90,29 @@ export default function ProductDetailClient({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400" />
+      <div className="py-4 sm:py-6 space-y-6">
+        <div className="grid md:grid-cols-2 gap-5 sm:gap-8 md:gap-10">
+          {/* Image skeleton */}
+          <div className="space-y-3">
+            <div className="aspect-square rounded-2xl bg-gray-100 animate-pulse" />
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 w-14 sm:h-18 sm:w-18 rounded-xl bg-gray-100 animate-pulse" />
+              ))}
+            </div>
+          </div>
+          {/* Info skeleton */}
+          <div className="space-y-4 pt-2">
+            <div className="h-7 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
+            <div className="h-9 bg-gray-100 rounded-lg w-1/3 animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
+              <div className="h-4 bg-gray-100 rounded w-5/6 animate-pulse" />
+              <div className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
+            </div>
+            <div className="h-12 bg-gray-100 rounded-xl w-full animate-pulse mt-4" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -104,6 +126,32 @@ export default function ProductDetailClient({
       </div>
     );
   }
+
+  // Вычисляем эффективную цену на основе выбранных вариантов
+  const getEffectivePrice = (): number => {
+    if (!product) return 0;
+    for (const variant of product.variants || []) {
+      const sel = selectedVariants[variant.name];
+      if (sel && variant.prices?.[sel] != null) {
+        return variant.prices[sel];
+      }
+    }
+    return product.price;
+  };
+
+  const getEffectiveComparePrice = (): number | null => {
+    if (!product) return null;
+    for (const variant of product.variants || []) {
+      const sel = selectedVariants[variant.name];
+      if (sel && variant.compare_prices?.[sel] != null) {
+        return variant.compare_prices[sel];
+      }
+    }
+    return product.compare_price ?? null;
+  };
+
+  const effectivePrice = getEffectivePrice();
+  const effectiveComparePrice = getEffectiveComparePrice();
 
   const handleAdd = () => {
     if (!profile || profile.role !== "customer") {
@@ -133,7 +181,7 @@ export default function ProductDetailClient({
             : ""),
         store_id: product.store_id,
         name: product.name + variantSuffix,
-        price: product.price,
+        price: effectivePrice,
         image: product.images[0] || null,
       },
       quantity
@@ -142,7 +190,7 @@ export default function ProductDetailClient({
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-4 sm:py-6 px-0">
+    <div className="max-w-5xl mx-auto py-4 sm:py-6 px-0 pb-20 md:pb-6">
       <div className="grid md:grid-cols-2 gap-5 sm:gap-8 md:gap-10">
         {/* Images */}
         <div className="space-y-3">
@@ -183,16 +231,33 @@ export default function ProductDetailClient({
         <div className="space-y-5">
           <div>
             <h1 className="text-3xl font-bold s-text">{product.name}</h1>
-            <p className="text-3xl font-bold mt-2" style={{ color: primaryColor }}>
-              {formatPrice(product.price)}
-            </p>
+            <div className="flex items-baseline gap-3 mt-2">
+              <p className="text-3xl font-bold" style={{ color: primaryColor }}>
+                {formatPrice(effectivePrice)}
+              </p>
+              {effectiveComparePrice != null && effectiveComparePrice > effectivePrice && (
+                <p className="text-lg text-gray-400 line-through">
+                  {formatPrice(effectiveComparePrice)}
+                </p>
+              )}
+            </div>
+            {product.sku && (
+              <p className="text-xs text-gray-400 mt-1 font-mono">Артикул: {product.sku}</p>
+            )}
           </div>
 
           {product.stock > 0 ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              В наличии: {product.stock} шт.
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                В наличии: {product.stock} шт.
+              </span>
+              {product.weight && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm">
+                  {product.weight}
+                </span>
+              )}
+            </div>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-sm font-medium">
               Нет в наличии
@@ -217,6 +282,7 @@ export default function ProductDetailClient({
                   <div className="flex flex-wrap gap-2">
                     {variant.values.map((val) => {
                       const isSelected = selectedVariants[variant.name] === val;
+                      const variantPrice = variant.prices?.[val];
                       return (
                         <button
                           key={val}
@@ -234,6 +300,11 @@ export default function ProductDetailClient({
                           style={isSelected ? { backgroundColor: primaryColor } : {}}
                         >
                           {val}
+                          {variantPrice != null && (
+                            <span className="ml-1 text-xs opacity-80">
+                              {formatPrice(variantPrice)}
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -269,7 +340,7 @@ export default function ProductDetailClient({
           )}
 
           {product.stock > 0 && (
-            <div className="flex items-center gap-4 pt-2">
+            <div className="hidden md:flex items-center gap-4 pt-2">
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -294,7 +365,7 @@ export default function ProductDetailClient({
                 style={{ backgroundColor: primaryColor }}
                 className="text-white hover:opacity-90 flex-1 h-12 rounded-xl text-base font-semibold shadow-md"
               >
-                В корзину — {formatPrice(product.price * quantity)}
+                В корзину — {formatPrice(effectivePrice * quantity)}
               </Button>
             </div>
           )}
@@ -441,6 +512,36 @@ export default function ProductDetailClient({
           </div>
         )}
       </div>
+
+      {/* Sticky add-to-cart bar on mobile */}
+      {product.stock > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden s-card border-t s-border px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" style={{ backgroundColor: 'var(--s-bg, #fff)' }}>
+          <div className="flex items-center gap-3 max-w-lg mx-auto">
+            <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden shrink-0">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="p-2.5 s-hover transition-colors"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <span className="px-3 font-semibold text-sm">{quantity}</span>
+              <button
+                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                className="p-2.5 s-hover transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <Button
+              onClick={handleAdd}
+              style={{ backgroundColor: primaryColor }}
+              className="text-white hover:opacity-90 flex-1 h-11 rounded-xl text-sm font-semibold shadow-md"
+            >
+              В корзину — {formatPrice(effectivePrice * quantity)}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

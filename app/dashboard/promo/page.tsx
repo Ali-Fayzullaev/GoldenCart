@@ -12,6 +12,11 @@ import {
   Copy,
   Percent,
   DollarSign,
+  Sparkles,
+  Zap,
+  TrendingUp,
+  Clock,
+  Ban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +46,15 @@ import { promoCodeSchema, type PromoCodeInput } from "@/lib/validations";
 import { formatPrice } from "@/lib/helpers";
 import { toast } from "sonner";
 
+function generateRandomCode(length = 8): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export default function PromoCodesPage() {
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: codes, isLoading: codesLoading } = useStorePromoCodes(store?.id);
@@ -48,6 +62,11 @@ export default function PromoCodesPage() {
   const deletePromo = useDeletePromoCode();
   const togglePromo = useTogglePromoCode();
   const [open, setOpen] = useState(false);
+
+  // Stats
+  const activeCodes = codes?.filter((c) => c.is_active && !(c.expires_at && new Date(c.expires_at) < new Date()) && !(c.max_uses > 0 && c.used_count >= c.max_uses)) || [];
+  const expiredCodes = codes?.filter((c) => (c.expires_at && new Date(c.expires_at) < new Date()) || (c.max_uses > 0 && c.used_count >= c.max_uses)) || [];
+  const totalUses = codes?.reduce((sum, c) => sum + c.used_count, 0) || 0;
 
   const {
     register,
@@ -142,11 +161,23 @@ export default function PromoCodesPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label>Код</Label>
-                <Input
-                  placeholder="SALE20"
-                  className="uppercase font-mono"
-                  {...register("code")}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="SALE20"
+                    className="uppercase font-mono"
+                    {...register("code")}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 h-9"
+                    onClick={() => setValue("code", generateRandomCode())}
+                    title="Сгенерировать случайный код"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </Button>
+                </div>
                 {errors.code && (
                   <p className="text-sm text-red-500">{errors.code.message}</p>
                 )}
@@ -211,7 +242,10 @@ export default function PromoCodesPage() {
 
               <div className="space-y-2">
                 <Label>Срок действия (необязательно)</Label>
-                <Input type="datetime-local" {...register("expires_at")} />
+                <Input type="datetime-local" min={new Date().toISOString().slice(0, 16)} {...register("expires_at")} />
+                {errors.expires_at && (
+                  <p className="text-sm text-red-500">{errors.expires_at.message}</p>
+                )}
               </div>
 
               <Button
@@ -228,6 +262,67 @@ export default function PromoCodesPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Статистика */}
+      {codes && codes.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-card rounded-xl border p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Zap className="h-4 w-4 text-green-500" />
+              Активные
+            </div>
+            <p className="text-2xl font-bold">{activeCodes.length}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Clock className="h-4 w-4 text-yellow-500" />
+              Истекшие
+            </div>
+            <p className="text-2xl font-bold">{expiredCodes.length}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <TrendingUp className="h-4 w-4 text-blue-500" />
+              Всего использований
+            </div>
+            <p className="text-2xl font-bold">{totalUses}</p>
+          </div>
+          <div className="bg-card rounded-xl border p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <Percent className="h-4 w-4 text-purple-500" />
+              Всего промокодов
+            </div>
+            <p className="text-2xl font-bold">{codes.length}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Быстрые действия */}
+      {expiredCodes.length > 0 && (
+        <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Ban className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm text-yellow-700">
+              {expiredCodes.length} промокод(ов) истекло или исчерпано
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+            onClick={async () => {
+              if (!confirm(`Удалить ${expiredCodes.length} истекших промокодов?`)) return;
+              for (const code of expiredCodes) {
+                await deletePromo.mutateAsync(code.id).catch(() => {});
+              }
+              toast.success("Истекшие промокоды удалены");
+            }}
+          >
+            <Trash2 className="mr-1 h-3 w-3" />
+            Очистить
+          </Button>
+        </div>
+      )}
 
       {/* Список промокодов */}
       {!codes?.length ? (
@@ -299,7 +394,7 @@ export default function PromoCodesPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                     <span>
                       Использован:{" "}
                       {promo.used_count}
@@ -312,6 +407,23 @@ export default function PromoCodesPage() {
                       </span>
                     )}
                   </div>
+                  {/* Usage progress bar */}
+                  {promo.max_uses > 0 && (
+                    <div className="mt-2 w-full max-w-48">
+                      <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            promo.used_count >= promo.max_uses
+                              ? "bg-red-400"
+                              : promo.used_count >= promo.max_uses * 0.8
+                              ? "bg-yellow-400"
+                              : "bg-green-400"
+                          }`}
+                          style={{ width: `${Math.min(100, (promo.used_count / promo.max_uses) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Действия */}

@@ -233,8 +233,15 @@ export default function ProductsManagementPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-3xl font-bold">Товары</h1>
+        <div className="flex items-center gap-2">
+          {products && products.length > 0 && (
+            <Button variant="outline" onClick={() => exportProductsCSV(products)}>
+              <Download className="mr-2 h-4 w-4" />
+              Экспорт CSV
+            </Button>
+          )}
         <Dialog
           open={dialogOpen}
           onOpenChange={(open) => {
@@ -261,6 +268,7 @@ export default function ProductsManagementPage() {
             />
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {!products?.length ? (
@@ -530,6 +538,11 @@ function ProductForm({
   const [newVariantName, setNewVariantName] = useState("");
   const [newVariantValue, setNewVariantValue] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [comparePrice, setComparePrice] = useState(
+    (product as any)?.compare_price ? String((product as any).compare_price) : ""
+  );
+  const [weight, setWeight] = useState((product as any)?.weight || "");
+  const [sku, setSku] = useState((product as any)?.sku || "");
 
   const addNewVariant = () => {
     const name = newVariantName.trim();
@@ -608,12 +621,17 @@ function ProductForm({
   };
 
   const onSubmit = async (input: ProductInput) => {
+    const extra = {
+      compare_price: comparePrice ? Number(comparePrice) : null,
+      weight: weight.trim() || null,
+      sku: sku.trim() || null,
+    };
     try {
       if (product) {
-        await updateProduct.mutateAsync({ id: product.id, ...input, images, variants });
+        await updateProduct.mutateAsync({ id: product.id, ...input, images, variants, ...extra } as any);
         toast.success("Товар обновлён");
       } else {
-        await createProduct.mutateAsync({ ...input, store_id: storeId, images, variants });
+        await createProduct.mutateAsync({ ...input, store_id: storeId, images, variants, ...extra } as any);
         toast.success("Товар добавлен");
       }
       onSuccess();
@@ -685,8 +703,14 @@ function ProductForm({
 
       <div className="space-y-2">
         <Label htmlFor="description">Описание</Label>
-        <Textarea id="description" rows={3} {...register("description")} />
+        <Textarea
+          id="description"
+          rows={4}
+          placeholder="Подробное описание: состав, размеры, материал, особенности..."
+          {...register("description")}
+        />
         {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+        <p className="text-xs text-muted-foreground">Совет: хорошее описание помогает покупателям и улучшает поиск</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -700,6 +724,40 @@ function ProductForm({
           <Input id="stock" type="number" {...register("stock")} />
           {errors.stock && <p className="text-sm text-red-500">{errors.stock.message}</p>}
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="compare_price">Старая цена (₽) <span className="text-muted-foreground font-normal text-xs">— зачёркнутая</span></Label>
+          <Input
+            id="compare_price"
+            type="number"
+            step="0.01"
+            placeholder="Было 1500 ₽"
+            value={comparePrice}
+            onChange={(e) => setComparePrice(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="sku">Артикул (SKU) <span className="text-muted-foreground font-normal text-xs">— необязательно</span></Label>
+          <Input
+            id="sku"
+            placeholder="ART-12345"
+            className="font-mono"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="weight">Вес / Объём <span className="text-muted-foreground font-normal text-xs">— необязательно</span></Label>
+        <Input
+          id="weight"
+          placeholder="500 г, 1 кг, 250 мл, 30×40 см..."
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+        />
       </div>
 
       <div className="space-y-2">
@@ -744,20 +802,22 @@ function ProductForm({
                   className="inline-flex items-center gap-1 bg-secondary text-sm px-2 py-0.5 rounded-full"
                 >
                   {val}
+                  {variant.prices?.[val] != null && (
+                    <span className="text-primary font-medium">{variant.prices[val]}₽</span>
+                  )}
                   <button
                     type="button"
                     onClick={() =>
                       setVariants((prev) =>
-                        prev.map((v, i) =>
-                          i === vi
-                            ? {
-                                ...v,
-                                values: v.values.filter(
-                                  (_, j) => j !== valIdx
-                                ),
-                              }
-                            : v
-                        ).filter((v) => v.values.length > 0)
+                        prev.map((v, i) => {
+                          if (i !== vi) return v;
+                          const newValues = v.values.filter((_, j) => j !== valIdx);
+                          const newPrices = { ...v.prices };
+                          delete newPrices[val];
+                          const newComparePrices = { ...v.compare_prices };
+                          delete newComparePrices[val];
+                          return { ...v, values: newValues, prices: newPrices, compare_prices: newComparePrices };
+                        }).filter((v) => v.values.length > 0)
                       )
                     }
                   >
@@ -766,6 +826,42 @@ function ProductForm({
                 </span>
               ))}
             </div>
+
+            {/* Цены по вариантам */}
+            {variant.values.length > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-xs text-muted-foreground">Цены (необязательно — если пусто, используется базовая цена):</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {variant.values.map((val) => (
+                    <div key={val} className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground min-w-[40px] truncate">{val}:</span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="—"
+                        className="h-7 text-xs w-20"
+                        value={variant.prices?.[val] ?? ""}
+                        onChange={(e) => {
+                          const price = e.target.value;
+                          setVariants((prev) =>
+                            prev.map((v, i) => {
+                              if (i !== vi) return v;
+                              const prices = { ...v.prices };
+                              if (price === "" || price === undefined) {
+                                delete prices[val];
+                              } else {
+                                prices[val] = Number(price);
+                              }
+                              return { ...v, prices };
+                            })
+                          );
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {/* Добавить значение к существующему варианту */}
             <div className="flex gap-2">
               <Input
@@ -837,4 +933,44 @@ function ProductForm({
       </Button>
     </form>
   );
+}
+
+function exportProductsCSV(products: Product[]) {
+  const BOM = "\uFEFF";
+  const header = [
+    "Название",
+    "Описание",
+    "Цена",
+    "Старая цена",
+    "Остаток",
+    "Категория",
+    "Артикул",
+    "Вес",
+    "Статус",
+    "Изображения",
+  ].join(";");
+
+  const rows = products.map((p) =>
+    [
+      `"${p.name.replace(/"/g, '""')}"`,
+      `"${(p.description || "").replace(/"/g, '""')}"`,
+      p.price,
+      (p as any).compare_price || "",
+      p.stock,
+      p.category,
+      (p as any).sku || "",
+      (p as any).weight || "",
+      p.is_active ? "Активен" : "Скрыт",
+      p.images.join("|"),
+    ].join(";")
+  );
+
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `товары_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

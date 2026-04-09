@@ -52,7 +52,26 @@ export default function CartPage({
   if (!items.length) {
     return (
       <div className="text-center py-20">
-        <ShoppingBag className="h-16 w-16 text-gray-200 mx-auto mb-4" />
+        {/* Empty cart illustration */}
+        <div className="mx-auto mb-6 w-44 h-44 relative">
+          <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <circle cx="100" cy="100" r="80" fill="currentColor" className="text-gray-50" />
+            {/* Cart body */}
+            <path d="M60 75 L70 130 H140 L150 75" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200" fill="none" />
+            {/* Cart handle */}
+            <path d="M60 75 L50 60 H40" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200" />
+            {/* Wheels */}
+            <circle cx="85" cy="140" r="7" stroke="currentColor" strokeWidth="4" fill="currentColor" className="text-gray-100" />
+            <circle cx="130" cy="140" r="7" stroke="currentColor" strokeWidth="4" fill="currentColor" className="text-gray-100" />
+            {/* Dotted lines inside (empty) */}
+            <line x1="85" y1="95" x2="125" y2="95" stroke="currentColor" strokeWidth="3" strokeDasharray="6 4" strokeLinecap="round" className="text-gray-100" />
+            <line x1="85" y1="110" x2="115" y2="110" stroke="currentColor" strokeWidth="3" strokeDasharray="6 4" strokeLinecap="round" className="text-gray-100" />
+            {/* Sparkles */}
+            <circle cx="160" cy="60" r="4" fill="currentColor" className="text-gray-100" />
+            <circle cx="45" cy="130" r="5" fill="currentColor" className="text-gray-100" />
+            <circle cx="155" cy="140" r="3" fill="currentColor" className="text-gray-100" />
+          </svg>
+        </div>
         <h2 className="text-xl font-bold s-text mb-1">Корзина пуста</h2>
         <p className="s-muted text-sm mb-6">Добавьте товары из каталога</p>
         <Link href={`/store/${slug}`}>

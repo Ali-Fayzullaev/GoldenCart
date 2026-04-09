@@ -67,7 +67,10 @@ export const promoCodeSchema = z.object({
   discount_value: z.coerce.number().min(0.01, "Значение должно быть больше 0"),
   min_order_amount: z.coerce.number().min(0).optional(),
   max_uses: z.coerce.number().int().min(0).optional(),
-  expires_at: z.string().optional(),
+  expires_at: z.string().optional().refine(
+    (val) => !val || new Date(val) > new Date(),
+    "Дата должна быть в будущем"
+  ),
 });
 
 // --- Оформление заказа ---
