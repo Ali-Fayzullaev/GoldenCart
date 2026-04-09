@@ -45,6 +45,7 @@ export type StoreSettings = {
   telegram_url: string;
   vk_url: string;
   whatsapp_url: string;
+  card_style: string;
   updated_at: string;
 };
 

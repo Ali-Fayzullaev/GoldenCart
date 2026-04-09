@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe } from "lucide-react";
+import { Loader2, Upload as UploadIcon, Check, Sparkles, Globe, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -162,6 +162,7 @@ export default function DesignPage() {
   const [telegramUrl, setTelegramUrl] = useState("");
   const [vkUrl, setVkUrl] = useState("");
   const [whatsappUrl, setWhatsappUrl] = useState("");
+  const [cardStyle, setCardStyle] = useState("standard");
 
   useEffect(() => {
     if (settings) {
@@ -178,6 +179,7 @@ export default function DesignPage() {
       setTelegramUrl(settings.telegram_url || "");
       setVkUrl(settings.vk_url || "");
       setWhatsappUrl(settings.whatsapp_url || "");
+      setCardStyle((settings as any).card_style || "standard");
     }
   }, [settings]);
 
@@ -210,7 +212,8 @@ export default function DesignPage() {
         telegram_url: telegramUrl,
         vk_url: vkUrl,
         whatsapp_url: whatsappUrl,
-      });
+        card_style: cardStyle,
+      } as any);
       toast.success("Дизайн сохранён");
     } catch {
       toast.error("Ошибка сохранения");
@@ -410,6 +413,40 @@ export default function DesignPage() {
                 />
               </label>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="h-5 w-5 text-violet-500" />
+            <h2 className="text-lg font-semibold">Стиль карточек товаров</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">Выберите как будут выглядеть карточки товаров в каталоге</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { key: "standard", label: "Стандарт", desc: "Классическая карточка" },
+              { key: "compact", label: "Компакт", desc: "Маленькие, больше товаров" },
+              { key: "elegant", label: "Элегант", desc: "Крупные с описанием" },
+              { key: "minimal", label: "Минимал", desc: "Только фото и цена" },
+            ].map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setCardStyle(s.key)}
+                className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                  cardStyle === s.key
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border hover:border-primary/30"
+                }`}
+              >
+                {cardStyle === s.key && (
+                  <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="h-3 w-3 text-white" />
+                  </div>
+                )}
+                <p className="font-semibold text-sm">{s.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{s.desc}</p>
+              </button>
+            ))}
           </div>
         </div>
 
