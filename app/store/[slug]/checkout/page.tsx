@@ -56,13 +56,13 @@ export default function CheckoutPage({
     if (!store || !store.first_order_discount_type) return;
     const checkFirstOrder = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
       const { count } = await supabase
         .from("orders")
         .select("id", { count: "exact", head: true })
         .eq("store_id", store.id)
-        .eq("customer_id", user.id);
+        .eq("customer_id", session.user.id);
       if (count === 0) {
         const storeTotal = getStoreTotal(store.id);
         const disc =

@@ -9,14 +9,14 @@ export function useCustomerAddresses() {
     queryKey: ["customer-addresses"],
     queryFn: async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return [];
 
       const { data, error } = await supabase
         .from("customer_addresses")
         .select("*")
-        .eq("customer_id", user.id)
+        .eq("customer_id", session.user.id)
         .order("is_default", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -32,13 +32,13 @@ export function useCreateAddress() {
   return useMutation({
     mutationFn: async (input: { label: string; address: string; phone: string; is_default: boolean }) => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Не авторизован");
 
       const { data, error } = await supabase
         .from("customer_addresses")
-        .insert({ ...input, customer_id: user.id } as never)
+        .insert({ ...input, customer_id: session.user.id } as never)
         .select()
         .single();
 

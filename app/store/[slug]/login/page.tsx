@@ -54,13 +54,13 @@ export default function StoreLoginPage({
 
       // Link to store if not already linked
       if (store) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        const { data: { session: sess } } = await supabase.auth.getSession();
+        if (sess?.user) {
           await supabase
             .from("store_customers")
             .upsert({
               store_id: store.id,
-              customer_id: user.id,
+              customer_id: sess.user.id,
             } as never, { onConflict: "store_id,customer_id" });
         }
       }

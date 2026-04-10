@@ -10,15 +10,15 @@ export function useWishlist(storeId: string | undefined) {
     queryKey: ["wishlist", storeId],
     queryFn: async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return [];
 
       const { data, error } = await supabase
         .from("wishlists")
         .select("*, products(id, name, price, images, stock)")
         .eq("store_id", storeId!)
-        .eq("customer_id", user.id)
+        .eq("customer_id", session.user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -48,14 +48,14 @@ export function useAddToWishlist() {
       storeId: string;
     }) => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Не авторизован");
 
       const { data, error } = await supabase
         .from("wishlists")
         .insert({
-          customer_id: user.id,
+          customer_id: session.user.id,
           product_id: productId,
           store_id: storeId,
         } as never)
@@ -86,14 +86,14 @@ export function useRemoveFromWishlist() {
       storeId: string;
     }) => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Не авторизован");
 
       const { error } = await supabase
         .from("wishlists")
         .delete()
-        .eq("customer_id", user.id)
+        .eq("customer_id", session.user.id)
         .eq("product_id", productId);
 
       if (error) throw error;

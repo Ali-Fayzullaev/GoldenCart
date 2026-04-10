@@ -69,16 +69,16 @@ export function useCreateReview() {
       comment: string;
     }) => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Не авторизован");
 
       const { data, error } = await supabase
         .from("reviews")
         .upsert(
           {
             product_id: input.product_id,
-            customer_id: user.id,
+            customer_id: session.user.id,
             store_id: input.store_id,
             rating: input.rating,
             comment: input.comment,

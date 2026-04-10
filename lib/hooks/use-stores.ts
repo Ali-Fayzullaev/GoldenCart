@@ -12,14 +12,14 @@ export function useMyStore() {
     queryKey: ["my-store"],
     queryFn: async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return null;
 
       const { data, error } = await supabase
         .from("stores")
         .select("*, store_settings(*)")
-        .eq("owner_id", user.id)
+        .eq("owner_id", session.user.id)
         .single();
 
       if (error && error.code !== "PGRST116") throw error;
@@ -54,16 +54,16 @@ export function useCreateStore() {
   return useMutation({
     mutationFn: async (input: StoreInput & { logo_url?: string }) => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Не авторизован");
 
       const slug = slugify(input.name) + "-" + Date.now().toString(36);
 
       const { data, error } = await supabase
         .from("stores")
         .insert({
-          owner_id: user.id,
+          owner_id: session.user.id,
           name: input.name,
           slug,
           description: input.description,

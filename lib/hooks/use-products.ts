@@ -5,6 +5,8 @@ import type { ProductInput } from "@/lib/validations";
 
 const supabase = createClient();
 
+const PRODUCT_COLUMNS = "id, store_id, name, description, price, compare_price, stock, images, category, variants, weight, sku, is_active, created_at";
+
 // Товары магазина (для дашборда продавца)
 export function useStoreProducts(storeId: string | undefined) {
   return useQuery({
@@ -12,7 +14,7 @@ export function useStoreProducts(storeId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(PRODUCT_COLUMNS)
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
 
@@ -39,7 +41,7 @@ export function usePublicProducts(
     queryFn: async () => {
       let query = supabase
         .from("products")
-        .select("*")
+        .select(PRODUCT_COLUMNS)
         .eq("store_id", storeId!)
         .eq("is_active", true);
 
@@ -87,7 +89,7 @@ export function useProduct(productId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(PRODUCT_COLUMNS)
         .eq("id", productId)
         .single();
 
@@ -169,9 +171,11 @@ export function useUpdateProduct() {
       if (error) throw error;
       return data as unknown as Product;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["store-products"] });
       queryClient.invalidateQueries({ queryKey: ["public-products"] });
+      queryClient.invalidateQueries({ queryKey: ["product", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 }

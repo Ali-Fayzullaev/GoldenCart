@@ -28,15 +28,15 @@ export function useCustomerOrders(storeId: string | undefined) {
     queryKey: ["customer-orders", storeId],
     queryFn: async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return [];
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return [];
 
       const { data, error } = await supabase
         .from("orders")
         .select("*, order_items(*, products(name, images))")
         .eq("store_id", storeId!)
-        .eq("customer_id", user.id)
+        .eq("customer_id", session.user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -61,9 +61,9 @@ export function useCreateOrder() {
       promo_code?: string;
     }) => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Не авторизован");
 
       const subtotal = input.items.reduce(
         (sum, i) => sum + i.price * i.quantity,
@@ -75,7 +75,7 @@ export function useCreateOrder() {
         .from("orders")
         .insert({
           store_id: input.store_id,
-          customer_id: user.id,
+          customer_id: session.user.id,
           total_amount: totalAmount,
           shipping_address: input.shipping_address,
           phone: input.phone,
